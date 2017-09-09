@@ -1,4 +1,4 @@
-print "### Started, doing setup ###\n";
+print "### Started and doing setup ###\n";
 
 use strict;
 use warnings;
@@ -33,7 +33,7 @@ my $reply_count = 0;
 my $cycle = 0;
 my $cyc_lim = 25;
 
-my $pst_pochvala = 10;
+my $pst_pochvala = 5;
 
 my $keyword = "";
 my %keys;
@@ -137,7 +137,8 @@ my @noun_blank = (
     "Souhlasím.",
     "Přesně jak říkáte.",
     "Fotbal nemá logiku.",
-    "Tak jasně."
+    "Tak jasně.",
+    "No ovšem."
     );
 my @noun_blank_use = init_use(scalar @noun_blank);
 
@@ -422,6 +423,7 @@ my @nouns;
 my @adjectives;
 my @verbs;
 my @words;
+my $first_word;
 
 sub find_nouns {
     my @anodes = @_;
@@ -492,6 +494,7 @@ sub find_last_full_verb {
 sub find_words {
     my @anodes = @_;
     @words = ();
+    $first_word = @anodes[0]->lemma;
     foreach my $anode (@anodes) {
         push(@words, $anode->lemma);
     }
@@ -639,7 +642,7 @@ sub soutez {
                 	$speak = "Bylo to důležitý, od začátku sezony sme se trápili, konečně sme to protrhli.";
                 }
                 when(8) {
-                	$speak = "Teď musíme vyhrát zbylý zápasy a čekat na zaváhání soupeřů-";
+                	$speak = "Teď musíme vyhrát zbylý zápasy a čekat na zaváhání soupeřů.";
                 }
                 when(9) {
                 	$speak = "Na ostatní se nekoukáme, jdeme od zápasu k zápasu.";
@@ -1010,7 +1013,7 @@ sub hrac {
             	when(3) {
             		my $tag1 = set_tag_cat($node->tag, 'case', '1');
                     my $form = lcfirst $generator->get_form($node->lemma, $tag1);
-            		$speak = "Myslím, že jsem lepší než " . $form . "soupeře.";
+            		$speak = "Myslím, že jsem lepší než " . $form . " soupeře.";
             	}
             	when(4) {
             		my $tag1 = set_tag_cat($node->tag, 'case', '7');
@@ -1217,6 +1220,67 @@ sub place {
     return $speak;
 }
 
+my @kolik_use = init_use(3);
+sub kolik {
+	my ($anodes) = @_;
+	my $speak;
+	my $used = -1;
+	if ("kolik" ~~ @words) {
+		my $cyc_const = 0;
+        do {
+            $used = int(rand(3));
+            given ($used) {
+                when (0) {
+                    $speak = "Hodně.";
+                }
+                when (1) {
+                    $speak = "Málo.";
+                }
+                when (2) {
+                    $speak = "Akorát.";
+                }
+            }
+        $cyc_const++;
+        } while ( @kolik_use[$used]==1 && $cyc_const < $cyc_lim);
+        @kolik_use[$used] = 1;
+        if ($cyc_const >= $cyc_lim) { return undef; }
+    }
+
+	return $speak;
+}
+
+my @byt_use = init_use(12);
+sub byt {
+	my ($anodes) = @_;
+	my $speak;
+	my $used = -1;
+	if ("být" eq $first_word) {
+		my $cyc_const = 0;
+        do {
+            $used = int(rand(12));
+            given ($used) {
+                when (0) { $speak = "Představte si, že ano."; }
+                when (1) { $speak = "Já myslím, že jo."; }
+                when (2) { $speak = "Tak jasně."; }
+                when (3) { $speak = "To fakt ne."; }
+                when (4) { $speak = "Neblbněte."; }
+                when (5) { $speak = "Tak určitě."; }
+                when (6) { $speak = "Přirozeně."; }
+                when (7) { $speak = "To ani náhodou."; }
+                when (8) { $speak = "Neřekl bych."; }
+                when (9) { $speak = "Ano."; }
+                when (10) { $speak = "Ne."; }
+                when (11) { $speak = "Nezdá se mi."; }
+            }
+        $cyc_const++;
+        } while ( @byt_use[$used]==1 && $cyc_const < $cyc_lim);
+        @byt_use[$used] = 1;
+        if ($cyc_const >= $cyc_lim) { return undef; }
+    }
+
+	return $speak;
+}
+
 sub uvod {
     my ($anodes) = @_;
     my $speak;
@@ -1271,35 +1335,41 @@ sub reply_hierarchy {
     $speak = uvod(@ar);
     $keyword = "";
     if (!defined $speak || length($speak) <= 0) {
-        $speak = name(@ar);
-        if (!defined $speak || length($speak) <= 0) {
-            $speak = place(@ar);
-            if (!defined $speak || length($speak) <= 0) {
-                $speak = vysledek(@ar);
-                if (!defined $speak || length($speak) <= 0) {
-                    $speak = soutez(@ar);
-                    if (!defined $speak || length($speak) <= 0) {
-                    	$speak = akce(@ar);
-                    	if (!defined $speak || length($speak) <= 0) {
-	                    	$speak = fans(@ar);
+    	$speak = kolik(@ar);
+	    if (!defined $speak || length($speak) <= 0) {
+	        $speak = name(@ar);
+	        if (!defined $speak || length($speak) <= 0) {
+	            $speak = place(@ar);
+	            if (!defined $speak || length($speak) <= 0) {
+	                $speak = vysledek(@ar);
+	                if (!defined $speak || length($speak) <= 0) {
+	                    $speak = soutez(@ar);
+	                    if (!defined $speak || length($speak) <= 0) {
+	                    	$speak = akce(@ar);
 	                    	if (!defined $speak || length($speak) <= 0) {
-		                    	$speak = hrac(@ar);
-		                        if (!defined $speak || length($speak) <= 0) {
-		                            $speak = general_noun(@ar);
-		                            $keyword = "";
-		                            if (!defined $speak || length($speak) <= 0) {
-		                                #$speak = jaky(@ar);
-		                                #if (!defined $speak || length($speak) <= 0) {
-		                                    $speak = nothing_to_say();
-		                                    $keyword = "";
-		                                #}
-		                            }
-		                        }
-                            }
-                        }
-                    }
-                }
-            }
+		                    	$speak = fans(@ar);
+		                    	if (!defined $speak || length($speak) <= 0) {
+			                    	$speak = hrac(@ar);
+			                        if (!defined $speak || length($speak) <= 0) {
+			                            $speak = byt(@ar);
+			                            if (!defined $speak || length($speak) <= 0) {
+				                            $speak = general_noun(@ar);
+				                            $keyword = "";
+				                            if (!defined $speak || length($speak) <= 0) {
+				                                #$speak = jaky(@ar);
+				                                #if (!defined $speak || length($speak) <= 0) {
+				                                    $speak = nothing_to_say();
+				                                    $keyword = "";
+				                                #}
+				                            }
+				                        }
+			                        }
+	                            }
+	                        }
+	                    }
+	                }
+	            }
+	        }
         } # tady je to ve chvili, kdy neprosel uvod
 
         my $prob = int(rand(100));
