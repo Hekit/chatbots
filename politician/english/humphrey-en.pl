@@ -114,54 +114,51 @@ my @end_dialogue = (
 my @end_dialogue_use = init_use(scalar @end_dialogue);
 
 my @too_short = (
-	"Hrozně rád bych vám něco moudrého řekl, ale teď vážně není na co. Zkuste se trochu snažit.",
-	"Zkuste klást pořádné otázky, když už tu s vámi trávím čas.",
-    "Vám asi neplatí podle počtu písmen, že? Tak alespoň tady zkuste něco trochu delšího.");
+	"I would really like to tell you something clever, but now there's really nothing to reply to. Please try harder.",
+	"Please try to pose real questions, since I am already wasting my precious time with you.",
+    "You're not paid by letter count, are you? Try something a bit longer anyway, please.");
 my @too_short_use = init_use(scalar @too_short);
 
 my @repeat_yourself = (
-    "Zkuste aspoň trochu obměnit, co mi říkáte.",
-    "Malá změna taky změna, tak nějakou zkuste."
+    "Could you try to change your question at least a little bit? This is boring.",
+    "A little change is also a change, so maybe try some."
     );
 my @repeat_yourself_use = init_use(scalar @repeat_yourself);
 
 my @angry = (
-    "Nezlobte se, ale já tu nejsem jen pro vaši zábavu.",
-    "Podívejte, takhle by to nešlo."
+    "I am very sorry but I am not here for your entertainment.",
+    "Look, we cannot continue like this."
     );
 my @angry_use = init_use(scalar @angry);
 
-my @kolega = (
-    "Novák", "Zelený", "Pražák", "Klicpera", "Svoboda", "Hrubeš", "Kubát", "Černý"
+my @colleague = (
+    "Smith", "Brown", "Watson", "Johnson"
     );
-my @kolega_use = init_use(scalar @kolega);
+my @colleague_use = init_use(scalar @colleague);
 
 my @noun_blank = (
-    "Je to velmi palčivý problém.",
-    "Toto téma budeme akcentovat v příští volební kampani.",
-    "Tohle téma bylo a bude předmětem dalších diskuzí, takže vám k němu v tuto chvíli bohužel nemůžu nic říci.",
-    "Tuto problematiku jsem důkladně rozebral ve svém včerejším tiskovém prohlášení a již se k ní nemíním vracet.",
-    "Ptáte se mě na věci, které jsou předmětem státního tajemství, takže vám bohužel nemohu odpovědět.",
-    #"Nevěřím, že si na tuto otázku nedovedete odpovědět sám.",
-    "Na tuto otázku snad vážně neočekáváte odpověď.",
+    "It is a very pressing issue.",
+    "We will focus on this topic in the next election campaign.",
+    "This topic has been and will be the subject of many discussions, therefore I cannot tell you any details at this moment.",
+    "I did a thorough analysis of these problems in my press release yesterday, so I will comment it no more.",
+    "You ask about things that are highly confidential. You cannot be surprised that I am not going to answer.",
+    "I hope you do not really expect me to answer such question.",
     );
 my @noun_blank_use = init_use(scalar @noun_blank);
 
 my @praise = (
-    "Vaše otázka svědčí o vašem hlubokém přehledu. Vy se o tato témata evidentně intenzivně zajímáte.",
-    "To je dobrá otázka.",
-    "To je velmi dobrá otázka.",
-    "To je výborná otázka.",
-    "To je vydařená otázka."
+    "Your question show your deep understanding of this topic. They are clearly of high interest for you.",
+    "That is a good question.",
+    "That is a very good question.",
+    "That is a brilliant question."
     );
 my @praise_use = init_use(scalar @praise);
 
 my @no_question = (
-    #"To už jste vyčerpal všechny otázky?",
-    "To už byly všechny vaše otázky?",
-    "Opravdu už se nechcete zeptat na nic dalšího?",
-    "Ještě něco, co by vás zajímalo...?",
-    "Podívejte se prosím do úkolníčku, na co dalšího se chcete zeptat."
+    "Were those really all your questions?",
+    "Are you sure you want to ask no more?",
+    "Anything else you are curious about ... ?",
+    "Please, check your todo list if there is anything else you need to ask about."
     );
 my @no_question_use = init_use(scalar @no_question);
 
@@ -293,18 +290,18 @@ sub noun_blank {
     return $noun_blank[$idx];
 }
 
-sub kolega {
-    if (usage_ok(@kolega_use) == 0) {
-        for my $i (0..scalar(@kolega_use)-1) {
-            $kolega_use[$i] = 0;
+sub colleague {
+    if (usage_ok(@colleague_use) == 0) {
+        for my $i (0..scalar(@colleague_use)-1) {
+            $colleague_use[$i] = 0;
         }
     }
     my $idx;
     do {
-        $idx = rand(scalar(@kolega_use));
-    } while ($kolega_use[$idx] == 1);
-    $kolega_use[$idx] = 1;
-    return $kolega[$idx];
+        $idx = rand(scalar(@colleague_use));
+    } while ($colleague_use[$idx] == 1);
+    $colleague_use[$idx] = 1;
+    return $colleague[$idx];
 }
 
 sub praise {
@@ -759,7 +756,7 @@ sub pojem {
                     my $tag = set_tag_cat($node->tag, 'case', '2');
                     my $form = lcfirst $generator->get_form($node->lemma, $tag);
                     $speak = "Problematikou " . $form . " se v našem poslaneckém klubu zabývá " .
-                    "kolega " . kolega() . ". Já vás jen mohu odkázat na něj.";         
+                    "kolega " . colleague() . ". Já vás jen mohu odkázat na něj.";         
                     $key_colour = 1;           
                 }
                 when(8) {
@@ -1147,7 +1144,7 @@ sub initialize {
     @too_short_use = init_use(scalar @end_dialogue_use);
     @repeat_yourself_use = init_use(scalar @repeat_yourself_use);
     @angry_use = init_use(scalar @angry_use);
-    @kolega_use = init_use(scalar @kolega_use);
+    @colleague_use = init_use(scalar @colleague_use);
     @noun_blank_use = init_use(scalar @noun_blank_use);
     @praise_use = init_use(scalar @praise_use);
     @no_question_use = init_use(scalar @no_question_use);
