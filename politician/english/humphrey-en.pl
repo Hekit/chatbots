@@ -32,8 +32,8 @@ binmode STDERR, ':utf8';
 
 
 # konstanty
-my $prob_typo = 0; # je to 0-100 < preklep
-my $prob_praise = 25; # obdobne
+my $prob_typo = 0; # it is 0-100 < typo
+my $prob_praise = 25; # similarly
 
 my $reply_count = 0;
 my $cycle = 0;
@@ -333,25 +333,14 @@ sub no_question {
 }
 
 
-# inicializace poli
-#my @instituce;
-#
-#open(my $f_instituce, '<:encoding(UTF-8)', "instituce")
-# or die "Couldn't open database1";
-#
-#while (my $row = <$f_instituce>) {
-#    chomp $row;
-#    push(@instituce, $row);
-#}
+my @keywords;
 
-my @pojmy;
+open(my $f_keywords, '<:encoding(UTF-8)', "keywords")
+ or die "Couldn't open database of keywords";
 
-open(my $f_pojmy, '<:encoding(UTF-8)', "pojmy")
- or die "Couldn't open database2";
-
-while (my $row = <$f_pojmy>) {
+while (my $row = <$f_keywords>) {
     chomp $row;
-    push(@pojmy, $row);
+    push(@keywords, $row);
 }
 
 
@@ -460,6 +449,7 @@ sub find_last_full_verb {
     my $node;
     foreach my $anode (@$anodes) {
         # speak ($anode->form . " " . $anode->lemma . " " . $anode->tag );
+		#CZ this is obviously a czech thingy - the verbs need to be changed so that meaningless verbs are excluded
         if ( $anode->tag =~ /^V/ && $anode->lemma !~ /být|mít|žít/) {
             $node = $anode;
         }
@@ -478,10 +468,6 @@ sub find_words {
 my %told_ya = ();
 my %told_me = ();
 
-#sub used_key {
-#
-#}
-
 sub i_said {
     my $sentence = join(' ', @_);
     $told_ya{$sentence} = 1;
@@ -499,19 +485,19 @@ sub q_check {
             return 1;
         }
         my $subpos = get_tag_cat($anode->tag, 'subpos');
-        if ($subpos eq "i") { #sloveso je v imperativu
+        if ($subpos eq "i") { #verb is in imperative
             return 1;
         }
     }
     return 0;
 }
 
-sub preklep {
+sub typo {
     my $sentence = shift;
 
-    my $pst = int(rand(100));
-    ### nastaveni pravdepodobnosti preklepu
-    if ($pst < $prob_typo){
+    my $prob = int(rand(100));
+    ### setting typo probability
+    if ($prob < $prob_typo){
         my $idx = int(rand(length($sentence)-4)) + 2;
         my $old = $sentence;
         $sentence = substr $old, 0, $idx;
@@ -526,8 +512,9 @@ sub preklep {
 
 my $last_was_q;
 
-### momentalne se nepouziva, nema to totiz moc velke vyuziti
-sub jaky {
+### NOT IN USE (but could be)
+#CZ all of it (jaky = what)
+sub what {
     my ($anodes) = @_;
 
     my $speak;
@@ -539,7 +526,8 @@ sub jaky {
         my $jakytag = 'P4YS4----------';
         $jakytag = set_tag_cat($jakytag, 'gender', $gender);
         $jakytag = set_tag_cat($jakytag, 'number', $number);
-        my $jaky = ucfirst $generator->get_form('jaký', $jakytag);
+
+		my $jaky = ucfirst $generator->get_form('jaký', $jakytag);
 
         my $byltag = 'VpYS---XR-AA---';
         $byltag = set_tag_cat($byltag, 'gender', $gender);
@@ -557,15 +545,16 @@ sub jaky {
     return $speak;
 }
 
-### momentalne se nepouziva, nema to totiz moc velke vyuziti
-sub proc {
+### also not in use
+#CZ good part of it
+sub why {
     my ($anodes) = @_;
 
     my $speak;
     my $node = find_last_full_verb($anodes);
     if ( defined $node ) {#&& !defined $info{$node->lemma}) {
         my $form = lc $node->form;
-        $speak = "Proč $form?";
+        $speak = "Why $form?";
         #$answer_to = $node->lemma;
     }
 
@@ -573,11 +562,13 @@ sub proc {
 }
 
 
-# sub pro nazor
+# opinion
+#CZ words obviously need to be adjusted - to think, to believe, a belief, ...
 my @opinion_verbs = ("myslet", "myslit", "myslit_:T", "říkat_:T");
 my @opinion_nouns = ("názor", "dojem");
 
-sub nazor {
+#CZ
+sub opinion {
     my ($anodes) = @_;
     my $what = undef;    
     my $speak = undef;
@@ -603,13 +594,17 @@ sub nazor {
         do {
             if ($what eq "n") {
                 given (int(rand(2))) {
+					#CZ My [keyword] is following the party's line
                     when(0) {$speak = "Můj " . $node . " je zcela v souladu se stranickou linií.";}
-                    when(1) {$speak = "Nemyslím si, že na něčem takovém by záleželo.";}
+                    #CZ I do not think anything like that would matter
+					when(1) {$speak = "Nemyslím si, že na něčem takovém by záleželo.";}
                 }
             }
             if ($what eq "v") {
                 given (int(rand(2))) {
+					#CZ Reviewing this topic is unfortunately beyond my expertise / competence
                     when(0) { $speak = "Hodnocení tohoto tématu je bohužel mimo moji kompetenci.";}
+					#CZ I think that everything follows the party's line
                     when(1) { $speak = "Myslím, že vše je v souladu se stranickou linií.";}
                 }
             }
@@ -620,52 +615,18 @@ sub nazor {
     else {return $speak;}
 }
 
-my @proste_verbs = ("zařídit", "zařídit_:W", "udělat", "udělat_:W",
-                     "vymyslit_:T", "vymyslit_:W", "vymyslet");
-
-sub proste_to {
-    my ($anodes) = @_;
-    my $speak = undef;
-    my $node = undef;
-
-    foreach my $verb (@proste_verbs) {
-        if ($verb ~~ @verbs) {
-            $node = $verb;
-            
-            foreach my $anode (@$anodes) {
-                if ($anode->lemma eq $node) {
-                    $node = $anode;
-                    last;
-                }
-            }
-            last;
-       }
-    }
-
-    if (defined $node){
-        my $tag = 'VB-P---1P-AA---';
-        my $used_verb = lcfirst $generator->get_form($node->lemma, $tag);
-
-        $speak = "Prostě to " . $used_verb . ".";
-    
-        if (exists $told_ya{$speak}) {return undef;}
-        else {return $speak;}
-    }
-    return undef;
-}
-
-my @pojem_use = init_use(11);
-sub pojem {
+my @keyword_use = init_use(11);
+sub keyword {
     my ($anodes) = @_;
     my $speak;
     my $node;
     my $done = 0;
 
-    foreach my $pojem (@pojmy) {
-         if ($pojem ~~ @nouns) {
+    foreach my $keyword (@keywords) {
+         if ($keyword ~~ @nouns) {
             
             foreach my $anode (@$anodes) {
-                if ($anode->lemma eq $pojem) {
+                if ($anode->lemma eq $keyword) {
                     $node = $anode;
                     $done = 1;
                     last;
@@ -691,7 +652,7 @@ sub pojem {
                     my $nezajima_tag = 'VB-S---3P-NA---';
                     $nezajima_tag = set_tag_cat($nezajima_tag, 'number', $number);
                     my $nezajima = lcfirst $generator->get_form('zajímat', $nezajima_tag);
-
+					#CZ I am not interested in [keyword], but I am sure we will discuss it during the government meeting
                     $speak = "Mě " . $form . " " . $nezajima . 
                             ", ale jsem si jist, že to na vládě důkladně projednáme.";
                     $key_colour = 1;
@@ -708,19 +669,22 @@ sub pojem {
                     $dulezity_tag = set_tag_cat($dulezity_tag, 'number', $number);
                     $dulezity_tag = set_tag_cat($dulezity_tag, 'gender', $gender);
                     my $dulezity = lcfirst $generator->get_form('důležitý', $dulezity_tag);
-                    $speak = $form . " " . $byt . " sice " . $dulezity . 
+                    #CZ [keyword] is important, but we have to look at the whole problem from a global perspective, too
+					$speak = $form . " " . $byt . " sice " . $dulezity . 
                             ", ale musíme se na celý problém podívat z globální perspektivy.";
                     $key_colour = 2;
                 }
                 when(3) {
                     my $tag = set_tag_cat($node->tag, 'case', '1');
                     my $form = lcfirst $generator->get_form($node->lemma, $tag);
+					#CZ I do not think that [keyword] is one of the most pressing issues
                     $speak = "Nemyslím si, že " . $form . " patří k nejpalčivějším tématům.";
                     $key_colour = 3;
                 }
                 when(4) {
                     my $tag = set_tag_cat($node->tag, 'case', '1');
                     my $form = ucfirst $generator->get_form($node->lemma, $tag);
+					#CZ [keyword] is not our priority during these elections
                     $speak = $form . " nepatří v tomto volebním období k našim prioritám.";
                     $key_colour = 3;
                 }
@@ -736,6 +700,7 @@ sub pojem {
                     $plod_tag = set_tag_cat($plod_tag, 'number', $number);
                     my $plod = lcfirst $generator->get_form('plod', $plod_tag);
 
+					#CZ [keyword] is/are the fruit(s) of our efforts in many years
                     $speak = $form . " " . $byt . " " . $plod . " našeho mnohaletého úsilí.";
                     $key_colour = 4;
                 }
@@ -748,6 +713,7 @@ sub pojem {
                     $pronoun_tag = set_tag_cat($pronoun_tag, 'gender', $gender);
                     $pronoun = lcfirst $generator->get_form('on-1', $pronoun_tag);
 
+					#CZ We analyzed [keyword] during yesterday's party meeting and before I learn the official view, I cannot give any comments
                     $speak = $form . " jsme rozebírali na včerejší schůzi a dokud se nedozvím "
                     . "stanovisko vedení strany, nemohu se k " . $pronoun . " vyjadřovat.";
                     $key_colour = 2;
@@ -755,13 +721,15 @@ sub pojem {
                 when(7) {
                     my $tag = set_tag_cat($node->tag, 'case', '2');
                     my $form = lcfirst $generator->get_form($node->lemma, $tag);
-                    $speak = "Problematikou " . $form . " se v našem poslaneckém klubu zabývá " .
+                    #CZ Mr. [colleague] is most knowledgable in our party on the topic of [keyword], I can redirect you to him
+					$speak = "Problematikou " . $form . " se v našem poslaneckém klubu zabývá " .
                     "kolega " . colleague() . ". Já vás jen mohu odkázat na něj.";         
                     $key_colour = 1;           
                 }
                 when(8) {
                     my $tag = set_tag_cat($node->tag, 'case', '7');
                     my $form = lcfirst $generator->get_form($node->lemma, $tag);
+					#CZ We have already agreed upon preparing a special comittee to deal with [keyword]. Let us wait for their results
                     $speak = "Už jsme odhlasovali vytvoření speciální komise, která se bude " . $form 
                     . " zabývat. Počkejme si na její závěry.";
                     $key_colour = 1;
@@ -769,6 +737,7 @@ sub pojem {
                 when (9) {
                     my $tag = set_tag_cat($node->tag, 'case', '2');
                     my $form = lcfirst $generator->get_form($node->lemma, $tag);
+					#CZ I have no right to comment on [keyword]
                     $speak = "Nemám mandát se na téma " . $form . " vyjadřovat.";
                     $key_colour = 2;
                 }
@@ -780,16 +749,17 @@ sub pojem {
                     $nep_tag = set_tag_cat($nep_tag, 'number', $number);
                     $nep_tag = set_tag_cat($nep_tag, 'gender', $gender);
                     $nepodstatne = lcfirst $generator->get_form('podstatný', $nep_tag);
+					#CZ Seeing a greater perspective of current problems I do not consider [keyword] to be of any importance
                     $speak = "Vzhledem k současným problémům považuji " . $form 
                     . " za " . $nepodstatne . ".";
                     $key_colour = 3;
                 }
             }
             $cyc_const++;
-        } while ( @pojem_use[$used]==1 && $cyc_const < $cyc_lim);
+        } while ( @keyword_use[$used]==1 && $cyc_const < $cyc_lim);
         $keyword = $node->lemma;
         if (!defined $keys{$keyword} || $keys{$keyword} == $key_colour) {
-            @pojem_use[$used] = 1;
+            @keyword_use[$used] = 1;
         }
     }
     $keyword = "";
@@ -830,49 +800,52 @@ sub name {
     if (defined $name) {
         my $used = -1;
         do {
-            $used = int(rand(8));
+            $used = int(rand(7));
             given ($used) {
                 when (0) {
-                    $speak = "Tohohle člověka vůbec nemám rád.";
+                    #CZ I do not like this person at all
+					$speak = "Tohohle člověka vůbec nemám rád.";
                     $key_colour = 1;
                 }
                 when (1) {
                     my $tag = set_tag_cat($name->tag, 'case', '2');
                     my $form = ucfirst $generator->get_form($name->lemma, $tag);
-                    $speak = $form . " si vážíme nejvíce když mlčí.";
+                    #CZ We value [person] the most when he is not talking
+					$speak = $form . " si vážíme nejvíce když mlčí.";
                     $key_colour = 1;
                 }
                 when (2) {
                     my $tag = set_tag_cat($name->tag, 'case', '1');
                     my $form = ucfirst $generator->get_form($name->lemma, $tag);
+					#CZ [person] is the right person in the right spot
                     $speak = $form . " je člověk na svém místě.";
                     $key_colour = 2;
                 }
                 when (3) {                                                                                                                                                                                                                                                                                              
                     my $tag = set_tag_cat($name->tag, 'case', '1');
                     my $form = ucfirst $generator->get_form($name->lemma, $tag);
+					#CZ [person] has my full support
                     $speak = $form . " má mou plnou podporu.";
                     $key_colour = 2;
                 }
                 when (4) {
                     my $tag = set_tag_cat($name->tag, 'case', '1');
                     my $form = ucfirst $generator->get_form($name->lemma, $tag);
+					#CZ [person] needs professional help
                     $speak = $form . " potřebuje odbornou pomoc.";
                     $key_colour = 1;
                 }
                 when (5) {
                     my $tag = set_tag_cat($name->tag, 'case', '1');
                     my $form = ucfirst $generator->get_form($name->lemma, $tag);
+					#CZ [person] is my big (cant think of the word - when you look up to someone)
                     $speak = $form . " je můj velký vzor.";
                     $key_colour = 2;
                 }
                 when (6) {
-                    $speak = "Mhm, dal bych si říct ...";
-                    $key_colour = 2;
-                }
-                when (7) {
                     my $tag = set_tag_cat($name->tag, 'case', '1');
                     my $form = ucfirst $generator->get_form($name->lemma, $tag);
+					#CZ [person] is very inspiring for me
                     $speak = $form . " je pro mě velkou inspirací.";
                     $key_colour = 2;
                 }
@@ -909,48 +882,56 @@ sub place {
             $used = int(rand(8));
             given ($used) {
                 when (0) {
+					#CZ I have never been there
                     $speak = "Tam jsem nikdy nebyl.";
                     $key_colour = 3;
                 }
                 when (1) {
                     my $tag = set_tag_cat($place->tag, 'case', '1');
                     my $form = ucfirst $generator->get_form($place->lemma, $tag);
+					#CZ [place] is a really nice place. I like to go there to relax
                     $speak = $form . " je moc hezké místo. Rád si tam jezdím odpočinout.";
                     $key_colour = 2;
                 }
                 when (2) {
                     my $tag = set_tag_cat($place->tag, 'case', '6');
                     my $form = ucfirst $generator->get_form($place->lemma, $tag);
+					#CZ [place] is wonderful in spring. I like it a lot there.
                     $speak = "V " . $form . " bývá zjara krásně. Moc se mi tam líbí.";
                     $key_colour = 2;
                 }
                 when (3) {
                     my $tag = set_tag_cat($place->tag, 'case', '1');
                     my $form = ucfirst $generator->get_form($place->lemma, $tag);
+					#CZ Oooh, [place], I drew through once several years ago
                     $speak = "Jó, " . $form . ", tamtudy už jsem jednou před lety projížděl.";
                     $key_colour = 4;
                 }
                 when (4) {
                     my $tag = set_tag_cat($place->tag, 'case', '1');
                     my $form = ucfirst $generator->get_form($place->lemma, $tag);
+					#CZ You can hardly find a more boring place than [place]
                     $speak = "Podle mě těžko najdete větší díru než " . $form . ".";
                     $key_colour = 1;
                 }
                 when (5) {
                     my $tag = set_tag_cat($place->tag, 'case', '6');
                     my $form = ucfirst $generator->get_form($place->lemma, $tag);
+					#CZ I have a public discussion in [place] next week
                     $speak = "V " . $form . " příští týden pořádám besedu.";
                     $key_colour = 3;
                 }
                 when (6) {
                     my $tag = set_tag_cat($place->tag, 'case', '2');
                     my $form = ucfirst $generator->get_form($place->lemma, $tag);
+					#CZ I plan to go to [place] for a work-trip to be able to better judge their competency
                     $speak = "Do " . $form . " se chystám na služební cestu, abych tamní situaci dokázal kompetentně posoudit.";
                     $key_colour = 4;
                 }
                 when (7) {
                     my $tag = set_tag_cat($place->tag, 'case', '1');
                     my $form = ucfirst $generator->get_form($place->lemma, $tag);
+					#CZ [place] has its own issued that we cannot understand here
                     $speak = $form . " má své vlastní problémy, které my zde nedokážeme posoudit.";
                     $key_colour = 4;
                 }
@@ -967,7 +948,7 @@ sub place {
     return $speak;
 }
 
-sub uvod {
+sub intro { #CZ This will probably be the toughest. It should deal with 'how are you' and stuff, with 42, with asking for name, ... enjoy :))
     my ($anodes) = @_;
     my $speak;
 
@@ -999,19 +980,11 @@ sub uvod {
         return $speak;
     }
 
-    # prekonanej koncept
-    # my $result = amatch("slon", "slovo"); # je to 1 kdyz to vyjde
-    
     return $speak;
 }
 
-sub volby {
-    my ($anodes) = @_;
 
-
-}
-
-# ridici mechanismus
+# guiding mechanism
 my $logname = strftime("%Y-%m-%d_%H-%M-%S.log", localtime(time));
 open $logfile, '>:utf8', $logname;
 	
@@ -1023,36 +996,32 @@ sub reply_hierarchy {
     my $speak = "";
     
     do {
-    $speak = uvod(@ar);
+    $speak = intro(@ar);
     $keyword = "";
     if (!defined $speak || length($speak) <= 0) {
-        $speak = proste_to(@ar);
-        $keyword = "";
-        if (!defined $speak || length($speak) <= 0) {
-            $speak = name(@ar);
-            if (!defined $speak || length($speak) <= 0) {
-                $speak = place(@ar);
-                if (!defined $speak || length($speak) <= 0) {
-                    $speak = nazor(@ar);
-                    $keyword = "";
-                    if (!defined $speak || length($speak) <= 0) {
-                        $speak = pojem(@ar);
-                        if (!defined $speak || length($speak) <= 0) {
-                            $speak = general_noun(@ar);
-                            $keyword = "";
-                            if (!defined $speak || length($speak) <= 0) {
-                                #$speak = jaky(@ar);
-                                #if (!defined $speak || length($speak) <= 0) {
-                                    $speak = nothing_to_say();
-                                    $keyword = "";
-                                #}
-                            }
-                        }
-                    }
-                }
+		$speak = name(@ar);
+		if (!defined $speak || length($speak) <= 0) {
+			$speak = place(@ar);
+			if (!defined $speak || length($speak) <= 0) {
+				$speak = opinion(@ar);
+				$keyword = "";
+				if (!defined $speak || length($speak) <= 0) {
+					$speak = keyword(@ar);
+					if (!defined $speak || length($speak) <= 0) {
+						$speak = general_noun(@ar);
+						$keyword = "";
+						if (!defined $speak || length($speak) <= 0) {
+							#$speak = jaky(@ar);
+							#if (!defined $speak || length($speak) <= 0) {
+								$speak = nothing_to_say();
+								$keyword = "";
+							#}
+						}
+					}
+				}
             }
-        } # tady je to ve chvili, kdy neprosel uvod
-
+        } 
+	
         my $prob = int(rand(100));
         if ($prob <= $prob_praise) {
             $speak = praise() . " " . $speak;
@@ -1069,7 +1038,7 @@ sub reply_hierarchy {
         say "ukladam " . $keyword;
         $keys{$keyword} = $key_colour;
     }
-    $speak = preklep($speak);
+    $speak = typo($speak);
 
     #foreach $a (@pojem_use){
     #print $a;      
@@ -1090,7 +1059,7 @@ sub respond {
 
 	    # analyze line
 	    chomp $line;
-    # opakuje identickou otazku
+		# repeats identical question
         if ( exists $told_me{$line} ) {
             speak (angry() . " " . repeat_yourself());
             return;
@@ -1108,24 +1077,19 @@ sub respond {
 
         $last_was_q = q_check(@anodes);
 
-	# kdyz je veta moc kratka, rekneme si o delsi
+	# the sentence is too short -> we ask for a longer one
 	    if ( @anodes == 0 ) {
             speak too_short();
             return;
 	    }
-	# kdyz dostanu ukoncujici sekvenci, skoncim
-	    #if ( grep { $_->lemma eq 'konec' } @anodes ) {
-        #    speak end_dialogue();
-        #    last;
-	    #}
 
         if (! $last_was_q) {
             speak no_question();
             return;
         }
-    # hlavni odpovidaci mechanismus
+    # main reply mechanism
         my $speak = reply_hierarchy(\@anodes);
-	# je-li korektne zvoleno, co rici, rekni to, jinak popros o dalsi otazku
+	# if it produced something, then just say it, if not, ask for another question
 	    if ( defined $speak) {
             speak $speak;
             i_said($speak);
@@ -1159,5 +1123,3 @@ sub initialize {
 
 $scenario->end();
 close $logfile;
-
-# politika - urcite podstatne slovo, ale neni pojem, takze jak ho zpracujem?
