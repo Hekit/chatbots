@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/perl5
 
 print "### Started, doing setup ###\n";
 
@@ -32,8 +32,8 @@ binmode STDERR, ':utf8';
 
 
 # konstanty
-my $prob_typo = 0; # it is 0-100 < typo
-my $prob_praise = 25; # similarly
+my $pst_typo = 0; # je to 0-100 < typo
+my $pst_pochvala = 25; # obdobne
 
 my $reply_count = 0;
 my $cycle = 0;
@@ -48,7 +48,7 @@ sub speak {
 
     say "Humphrey: " . $line;
     say $logfile $line;
-    
+
     u_said($line);
     print "> ";
 
@@ -58,22 +58,36 @@ sub speak {
 sub run_dialogue
 {
     initialize();
-    machine_talks();
-}
-
-sub machine_talks {
-    respond(); 
+    respond();
     while($line = <>)
     {
         if ($line eq ":q\n") {
             exit 0;
         }
         if ($line eq ":s\n") {
-            # start interview from beggining
+            # zacit rozhovor odznova
+        }
+        #print "> ", $line;
+        $reply_count += 1;
+        #say "čekám na ENTER";
+        #<STDIN>;
+        respond();
+    }
+}
+
+sub machine_talks {
+    respond();
+    while($line = <>)
+    {
+        if ($line eq ":q\n") {
+            exit 0;
+        }
+        if ($line eq ":s\n") {
+            # zacit rozhovor odznova
         }
         print "> ", $line;
         $reply_count += 1;
-        #say "waiting for ENTER";
+        #say "čekám na ENTER";
         #<STDIN>;
         respond();
     }
@@ -88,77 +102,94 @@ sub init_use {
     return @array;
 }
 
-# basic answers
+# základní odpovědi
 my @greeting = (
     "Greetings!"
 	);
 my @greeting_use = init_use(scalar @greeting);
 
 my @nothing_to_say = (
-	"Next question, please.", 
-	"No comment.");
+	"Next question, please.",
+	"No comment.",
+	"I will not address this subject.");
 my @nothing_to_say_use = init_use(scalar @nothing_to_say);
 
 my @next_question_prompt = (
 	"What are you interested in?",
 	"Pose your question, please.",
-    "I believe you have a question?");
+    "I believe you have a question for me.",
+    "What would you like to discuss about?");
 my @next_question_prompt_use = init_use(scalar @next_question_prompt);
 
 my @end_dialogue = (
-	"That should be enough for now.", 
-	"I am sorry but I have to go, the canteen will is going to close soon.",
-    "Oh, it is so late! I am sorry, but I have to leave.",
-    "I am sorry, but I have to go, I have an important appointment scheduled.",
-    "I have to go, I have a TV interview to attend.");
+	"That should be enough for now.",
+	"I am terribly sorry but I have to go, have a meeting that starts in 10 minutes.",
+    "Oh, it is already late! I am sorry, but I have to leave.",
+    "Please excuse me but I have to go, I have an important appointment scheduled.",
+    "I have to go, I have a TV interview to attend.",
+    "It has been a pleasure talking ot you, but I'm afraid I have to leave.",
+    "Unfortunately I need to leave, but please call my office to arrange a meeting with me soon.");
 my @end_dialogue_use = init_use(scalar @end_dialogue);
 
 my @too_short = (
-	"I would really like to tell you something clever, but now there's really nothing to reply to. Please try harder.",
-	"Please try to pose real questions, since I am already wasting my precious time with you.",
-    "You're not paid by letter count, are you? Try something a bit longer anyway, please.");
+	#"I would really like to tell you something clever, but now there's really nothing to reply to. Please try harder.",
+	#"Please try to pose real questions, since I am already wasting my precious time with you.",
+    "You're not paid by letter count, are you? Try something a bit longer, please.",
+    "Could you please elaborate a bit more on this topic?",
+    "I'm sorry, could you be a bit more specific?",
+    "I didn't quite understand that, would you mind rephrasing your question?");
 my @too_short_use = init_use(scalar @too_short);
 
 my @repeat_yourself = (
-    "Could you try to change your question at least a little bit? This is boring.",
-    "A little change is also a change, so maybe try some."
+    "Could you repeat your question, please?",
+    "I'm sorry, my phone rang, could you please repeat the question?",
+    "I didn't get that, can you repeat the question?"
     );
 my @repeat_yourself_use = init_use(scalar @repeat_yourself);
 
 my @angry = (
-    "I am very sorry but I am not here for your entertainment.",
-    "Look, we cannot continue like this."
+    "I am very sorry but I will not entertain thin.",
+    "We cannot continue talking on this subject.",
+    "Are you delibarately trying to embarrass me?",
+    "My position is clear, I do not stand for this. Let's change the subject.",
+    "Let's keep this a professional setting and move to another subject."
     );
 my @angry_use = init_use(scalar @angry);
 
-my @colleague = (
-    "Smith", "Brown", "Watson", "Johnson"
+my @kolega = (
+    "Smith", "Brown", "Watson", "Johnson", "Nelson", "Flannery"
     );
-my @colleague_use = init_use(scalar @colleague);
+my @kolega_use = init_use(scalar @kolega);
 
 my @noun_blank = (
-    "It is a very pressing issue.",
+    "This is a very pressing issue.",
     "We will focus on this topic in the next election campaign.",
-    "This topic has been and will be the subject of many discussions, therefore I cannot tell you any details at this moment.",
+    "This topic has been and will be the subject of many discussions, and we are preparing a proposal for the next parliament session. Therefore I cannot tell you any details at this moment.",
     "I did a thorough analysis of these problems in my press release yesterday, so I will comment it no more.",
     "You ask about things that are highly confidential. You cannot be surprised that I am not going to answer.",
-    "I hope you do not really expect me to answer such question.",
+    "I would prefer to refrain from commenting on this topic for  the time being.",
     );
 my @noun_blank_use = init_use(scalar @noun_blank);
 
 my @praise = (
-    "Your question show your deep understanding of this topic. They are clearly of high interest for you.",
+    "Your question shows your deep understanding of this topic. This is clearly of high interest for you.",
     "That is a good question.",
     "That is a very good question.",
-    "That is a brilliant question."
+    "That is a brilliant question.",
+    "I am very glad you brought this subject up.",
+    "I too have found this topic very interesting.",
+    "First of all, allow me to say that I share the same passion for this issue.",
+    "Thank you for bringing this important issue to light."
     );
 my @praise_use = init_use(scalar @praise);
 
 my @no_question = (
     "Were those really all your questions?",
-    "Are you sure you want to ask no more?",
-    "Anything else you are curious about ... ?",
-    "Please, check your todo list if there is anything else you need to ask about."
+    "Are you sure you don't have any more questions?",
+    "Anything else you are curious to know?",
+    #"Please, check your todo list if there is anything else you need to ask about."
+    "Could I help you with anything else?",
+    "Let me know if you need clarificiations on anything."
     );
 my @no_question_use = init_use(scalar @no_question);
 
@@ -166,10 +197,10 @@ my @no_question_use = init_use(scalar @no_question);
 sub usage_ok {
     my @array = @_;
     my $count = 0;
-    foreach my $num (@array) {   
+    foreach my $num (@array) {
        if ( $num == 0) {
             $count++;
-        }        
+        }
     }
     if ($count == 0) {
         return 0;
@@ -290,18 +321,18 @@ sub noun_blank {
     return $noun_blank[$idx];
 }
 
-sub colleague {
-    if (usage_ok(@colleague_use) == 0) {
-        for my $i (0..scalar(@colleague_use)-1) {
-            $colleague_use[$i] = 0;
+sub kolega {
+    if (usage_ok(@kolega_use) == 0) {
+        for my $i (0..scalar(@kolega_use)-1) {
+            $kolega_use[$i] = 0;
         }
     }
     my $idx;
     do {
-        $idx = rand(scalar(@colleague_use));
-    } while ($colleague_use[$idx] == 1);
-    $colleague_use[$idx] = 1;
-    return $colleague[$idx];
+        $idx = rand(scalar(@kolega_use));
+    } while ($kolega_use[$idx] == 1);
+    $kolega_use[$idx] = 1;
+    return $kolega[$idx];
 }
 
 sub praise {
@@ -333,10 +364,21 @@ sub no_question {
 }
 
 
+# inicializace poli
+#my @instituce;
+#
+#open(my $f_instituce, '<:encoding(UTF-8)', "instituce")
+# or die "Couldn't open database1";
+#
+#while (my $row = <$f_instituce>) {
+#    chomp $row;
+#    push(@instituce, $row);
+#}
+
 my @keywords;
 
 open(my $f_keywords, '<:encoding(UTF-8)', "keywords")
- or die "Couldn't open database of keywords";
+ or die "Couldn't open database2";
 
 while (my $row = <$f_keywords>) {
     chomp $row;
@@ -393,7 +435,7 @@ my @words;
 sub find_nouns {
     my @anodes = @_;
     @nouns = ();
-    foreach my $anode (@anodes) {	
+    foreach my $anode (@anodes) {
 	   if ( $anode->tag =~ /^N/) {
 	        push(@nouns, $anode->lemma);
     	}
@@ -449,8 +491,7 @@ sub find_last_full_verb {
     my $node;
     foreach my $anode (@$anodes) {
         # speak ($anode->form . " " . $anode->lemma . " " . $anode->tag );
-		#CZ this is obviously a czech thingy - the verbs need to be changed so that meaningless verbs are excluded
-        if ( $anode->tag =~ /^V/ && $anode->lemma !~ /být|mít|žít/) {
+        if ( $anode->tag =~ /^V/ && $anode->lemma !~ /be|have/) {
             $node = $anode;
         }
     }
@@ -467,6 +508,10 @@ sub find_words {
 
 my %told_ya = ();
 my %told_me = ();
+
+#sub used_key {
+#
+#}
 
 sub i_said {
     my $sentence = join(' ', @_);
@@ -495,26 +540,25 @@ sub q_check {
 sub typo {
     my $sentence = shift;
 
-    my $prob = int(rand(100));
+    my $pst = int(rand(100));
     ### setting typo probability
-    if ($prob < $prob_typo){
+    if ($pst < $pst_typo){
         my $idx = int(rand(length($sentence)-4)) + 2;
         my $old = $sentence;
         $sentence = substr $old, 0, $idx;
         $sentence = $sentence . substr $old, $idx+1, 1;
         $sentence = $sentence . substr $old, $idx, 1;
-        $sentence = $sentence . substr $old, $idx+2, length($old)-$idx; 
+        $sentence = $sentence . substr $old, $idx+2, length($old)-$idx;
     }
-    return $sentence; 
+    return $sentence;
 }
 
 # dialogue methods
 
 my $last_was_q;
 
-### NOT IN USE (but could be)
-#CZ all of it (jaky = what)
-sub what {
+### momentalne se nepouziva, nema to totiz moc velke vyuziti
+sub jaky {
     my ($anodes) = @_;
 
     my $speak;
@@ -526,28 +570,26 @@ sub what {
         my $jakytag = 'P4YS4----------';
         $jakytag = set_tag_cat($jakytag, 'gender', $gender);
         $jakytag = set_tag_cat($jakytag, 'number', $number);
-
-		my $jaky = ucfirst $generator->get_form('jaký', $jakytag);
+        my $jaky = ucfirst $generator->get_form('what', $jakytag);
 
         my $byltag = 'VpYS---XR-AA---';
         $byltag = set_tag_cat($byltag, 'gender', $gender);
         $byltag = set_tag_cat($byltag, 'number', $number);
-        my $byl = $generator->get_form('být', $byltag);
+        my $byl = $generator->get_form('be', $byltag);
 
         my $tag1 = set_tag_cat($noun->tag, 'case', '4');
         my $form = $generator->get_form($noun->lemma, $tag1);
 
         if ( $jaky && $byl && $form) {
-            $speak = "$jaky $form máte na mysli?";
+            $speak = "$jaky $form do you mean?";
             #$answer_to = $noun->lemma;
         }
     }
     return $speak;
 }
 
-### also not in use
-#CZ good part of it
-sub why {
+### momentalne se nepouziva, nema to totiz moc velke vyuziti
+sub proc {
     my ($anodes) = @_;
 
     my $speak;
@@ -562,15 +604,13 @@ sub why {
 }
 
 
-# opinion
-#CZ words obviously need to be adjusted - to think, to believe, a belief, ...
-my @opinion_verbs = ("myslet", "myslit", "myslit_:T", "říkat_:T");
-my @opinion_nouns = ("názor", "dojem");
+# sub pro nazor
+my @opinion_verbs = ("think", "believe", "claim", "feel", "consider", "bemuse");
+my @opinion_nouns = ("opinion", "impression", "belief", "judgement", "thinking", "point", "view", "viewpoint", "perspective");
 
-#CZ
-sub opinion {
+sub nazor {
     my ($anodes) = @_;
-    my $what = undef;    
+    my $what = undef;
     my $speak = undef;
     my $node = undef;
 
@@ -594,18 +634,14 @@ sub opinion {
         do {
             if ($what eq "n") {
                 given (int(rand(2))) {
-					#CZ My [keyword] is following the party's line
-                    when(0) {$speak = "Můj " . $node . " je zcela v souladu se stranickou linií.";}
-                    #CZ I do not think anything like that would matter
-					when(1) {$speak = "Nemyslím si, že na něčem takovém by záleželo.";}
+                    when(0) {$speak = "My " . $node . " is completely in accordance with our party ideals.";}
+                    when(1) {$speak = "In my opinion, this is not a pressing matter";}
                 }
             }
             if ($what eq "v") {
                 given (int(rand(2))) {
-					#CZ Reviewing this topic is unfortunately beyond my expertise / competence
-                    when(0) { $speak = "Hodnocení tohoto tématu je bohužel mimo moji kompetenci.";}
-					#CZ I think that everything follows the party's line
-                    when(1) { $speak = "Myslím, že vše je v souladu se stranickou linií.";}
+                    when(0) { $speak = "Unfortunately, the evaluation of this topic is beyond my competence.";}
+                    when(1) { $speak = "I think everything adheres to the beliefs of my party.";}
                 }
             }
             $cyc_const++;
@@ -615,18 +651,52 @@ sub opinion {
     else {return $speak;}
 }
 
-my @keyword_use = init_use(11);
-sub keyword {
+my @proste_verbs = ("arrange", "do", "make", "invent", "concoct",
+                     "devise", "conceive", "fabricate");
+
+sub proste_to {
+    my ($anodes) = @_;
+    my $speak = undef;
+    my $node = undef;
+
+    foreach my $verb (@proste_verbs) {
+        if ($verb ~~ @verbs) {
+            $node = $verb;
+
+            foreach my $anode (@$anodes) {
+                if ($anode->lemma eq $node) {
+                    $node = $anode;
+                    last;
+                }
+            }
+            last;
+       }
+    }
+
+    if (defined $node){
+        my $tag = 'VB-P---1P-AA---';
+        my $used_verb = lcfirst $generator->get_form($node->lemma, $tag);
+
+        $speak = "Just " . $used_verb . ".";
+
+        if (exists $told_ya{$speak}) {return undef;}
+        else {return $speak;}
+    }
+    return undef;
+}
+
+my @pojem_use = init_use(11);
+sub pojem {
     my ($anodes) = @_;
     my $speak;
     my $node;
     my $done = 0;
 
-    foreach my $keyword (@keywords) {
-         if ($keyword ~~ @nouns) {
-            
+    foreach my $pojem (@keywords) {
+         if ($pojem ~~ @nouns) {
+
             foreach my $anode (@$anodes) {
-                if ($anode->lemma eq $keyword) {
+                if ($anode->lemma eq $pojem) {
                     $node = $anode;
                     $done = 1;
                     last;
@@ -637,24 +707,24 @@ sub keyword {
     }
 
     my $cyc_const = 0;
-        
-    if (defined $node) {    
+
+    if (defined $node) {
         my $number = get_tag_cat($node->tag, 'number');
         my $gender = get_tag_cat($node->tag, 'gender');
         my $used = -1;
-        do {    
+        do {
             $used = int(rand(11));
             given ($used) {
                 when(0) {
                     my $tag1 = set_tag_cat($node->tag, 'case', '1');
                     my $form = lcfirst $generator->get_form($node->lemma, $tag1);
-                    
+
                     my $nezajima_tag = 'VB-S---3P-NA---';
                     $nezajima_tag = set_tag_cat($nezajima_tag, 'number', $number);
-                    my $nezajima = lcfirst $generator->get_form('zajímat', $nezajima_tag);
-					#CZ I am not interested in [keyword], but I am sure we will discuss it during the government meeting
-                    $speak = "Mě " . $form . " " . $nezajima . 
-                            ", ale jsem si jist, že to na vládě důkladně projednáme.";
+                    my $nezajima = lcfirst $generator->get_form('interest', $nezajima_tag);
+
+                    $speak = "I am not fully qualified to speak about " . $form . " " . $nezajima .
+                            ", but I am certain that we will discuss it thoroughly in the next party meeting with my peers.";
                     $key_colour = 1;
                 }
                 when(1) {
@@ -663,29 +733,26 @@ sub keyword {
 
                     my $byt_tag = 'VB-----3P-AA---';
                     $byt_tag = set_tag_cat($byt_tag, 'number', $number);
-                    my $byt = lcfirst $generator->get_form('být', $byt_tag);
+                    my $byt = lcfirst $generator->get_form('be', $byt_tag);
 
                     my $dulezity_tag = 'AA--1----1A----';
                     $dulezity_tag = set_tag_cat($dulezity_tag, 'number', $number);
                     $dulezity_tag = set_tag_cat($dulezity_tag, 'gender', $gender);
-                    my $dulezity = lcfirst $generator->get_form('důležitý', $dulezity_tag);
-                    #CZ [keyword] is important, but we have to look at the whole problem from a global perspective, too
-					$speak = $form . " " . $byt . " sice " . $dulezity . 
-                            ", ale musíme se na celý problém podívat z globální perspektivy.";
+                    my $dulezity = lcfirst $generator->get_form('important', $dulezity_tag);
+                    $speak = "The issue of ". $form . " " . $byt . " very " . $dulezity .
+                            ", but it would be wiser to look at this topic from a wider perspective.";
                     $key_colour = 2;
                 }
                 when(3) {
                     my $tag = set_tag_cat($node->tag, 'case', '1');
                     my $form = lcfirst $generator->get_form($node->lemma, $tag);
-					#CZ I do not think that [keyword] is one of the most pressing issues
-                    $speak = "Nemyslím si, že " . $form . " patří k nejpalčivějším tématům.";
+                    $speak = "I do not think that  " . $form . " is one of the most burning issues.";
                     $key_colour = 3;
                 }
                 when(4) {
                     my $tag = set_tag_cat($node->tag, 'case', '1');
                     my $form = ucfirst $generator->get_form($node->lemma, $tag);
-					#CZ [keyword] is not our priority during these elections
-                    $speak = $form . " nepatří v tomto volebním období k našim prioritám.";
+                    $speak = $form . " is not one of our priorities in this election period, since we are preoccupied with many more issues that demand our undivided attention.";
                     $key_colour = 3;
                 }
                 when(5) {
@@ -694,14 +761,13 @@ sub keyword {
 
                     my $byt_tag = 'VB-----3P-AA---';
                     $byt_tag = set_tag_cat($byt_tag, 'number', $number);
-                    my $byt = lcfirst $generator->get_form('být', $byt_tag);
+                    my $byt = lcfirst $generator->get_form('be', $byt_tag);
 
                     my $plod_tag = 'NNI-7-----A----';
                     $plod_tag = set_tag_cat($plod_tag, 'number', $number);
                     my $plod = lcfirst $generator->get_form('plod', $plod_tag);
 
-					#CZ [keyword] is/are the fruit(s) of our efforts in many years
-                    $speak = $form . " " . $byt . " " . $plod . " našeho mnohaletého úsilí.";
+                    $speak = $form . " " . $byt . " " . $plod . " is the result of our many years of joined effort.";
                     $key_colour = 4;
                 }
                 when(6) {
@@ -713,32 +779,28 @@ sub keyword {
                     $pronoun_tag = set_tag_cat($pronoun_tag, 'gender', $gender);
                     $pronoun = lcfirst $generator->get_form('on-1', $pronoun_tag);
 
-					#CZ We analyzed [keyword] during yesterday's party meeting and before I learn the official view, I cannot give any comments
-                    $speak = $form . " jsme rozebírali na včerejší schůzi a dokud se nedozvím "
-                    . "stanovisko vedení strany, nemohu se k " . $pronoun . " vyjadřovat.";
+                    $speak = $form . " this has been discussed in yesterday's party meeting and if I do not know "
+                    . "the opinion of the party leadership, " . $pronoun . " cannot express.";
                     $key_colour = 2;
-                }                
+                }
                 when(7) {
                     my $tag = set_tag_cat($node->tag, 'case', '2');
-                    my $form = lcfirst $generator->get_form($node->lemma, $tag);
-                    #CZ Mr. [colleague] is most knowledgable in our party on the topic of [keyword], I can redirect you to him
-					$speak = "Problematikou " . $form . " se v našem poslaneckém klubu zabývá " .
-                    "kolega " . colleague() . ". Já vás jen mohu odkázat na něj.";         
-                    $key_colour = 1;           
+                    my $form = lcfirst $generator->get_form($node->lemma, $tag); # Is something worng with the sentence structure here?
+                    $speak = "The issue of " . $form . " is one of our political party's concerns " .
+                    "my colleague " . kolega() . ". I could perhaps refer you to him and I will be happy to transfer your concerns to him.";
+                    $key_colour = 1;
                 }
                 when(8) {
                     my $tag = set_tag_cat($node->tag, 'case', '7');
                     my $form = lcfirst $generator->get_form($node->lemma, $tag);
-					#CZ We have already agreed upon preparing a special comittee to deal with [keyword]. Let us wait for their results
-                    $speak = "Už jsme odhlasovali vytvoření speciální komise, která se bude " . $form 
-                    . " zabývat. Počkejme si na její závěry.";
+                    $speak = "We have already agreed to form a special comittee, in order to deal with the issue of " . $form
+                    . ". We can hope to come up with viable solutions and implement them as soon as possible.";
                     $key_colour = 1;
                 }
                 when (9) {
                     my $tag = set_tag_cat($node->tag, 'case', '2');
                     my $form = lcfirst $generator->get_form($node->lemma, $tag);
-					#CZ I have no right to comment on [keyword]
-                    $speak = "Nemám mandát se na téma " . $form . " vyjadřovat.";
+                    $speak = "I have no right to comment on " . $form . ". This falls past my juristiction.";
                     $key_colour = 2;
                 }
                 when (10) {
@@ -749,22 +811,21 @@ sub keyword {
                     $nep_tag = set_tag_cat($nep_tag, 'number', $number);
                     $nep_tag = set_tag_cat($nep_tag, 'gender', $gender);
                     $nepodstatne = lcfirst $generator->get_form('podstatný', $nep_tag);
-					#CZ Seeing a greater perspective of current problems I do not consider [keyword] to be of any importance
-                    $speak = "Vzhledem k současným problémům považuji " . $form 
-                    . " za " . $nepodstatne . ".";
+                    $speak = "Seeing as there are current events that are calling for immediate action, I consider " . $form
+                    . " to be not as pressing as those " . $nepodstatne . ".";
                     $key_colour = 3;
                 }
             }
             $cyc_const++;
-        } while ( @keyword_use[$used]==1 && $cyc_const < $cyc_lim);
+        } while ( @pojem_use[$used]==1 && $cyc_const < $cyc_lim);
         $keyword = $node->lemma;
         if (!defined $keys{$keyword} || $keys{$keyword} == $key_colour) {
-            @keyword_use[$used] = 1;
+            @pojem_use[$used] = 1;
         }
     }
     $keyword = "";
-    if ($cyc_const >= $cyc_lim) { 
-        return undef; 
+    if ($cyc_const >= $cyc_lim) {
+        return undef;
     } else {
         if (defined $node) {$keyword = $node->lemma;}
         return $speak;
@@ -775,7 +836,7 @@ sub general_noun {
     my ($anodes) = @_;
     my $speak;
     my $noun = find_last_noun($anodes);
-    
+
     if (length($noun) > 0) {
         $speak = noun_blank();
     }
@@ -800,53 +861,50 @@ sub name {
     if (defined $name) {
         my $used = -1;
         do {
-            $used = int(rand(7));
+            $used = int(rand(8));
             given ($used) {
                 when (0) {
-                    #CZ I do not like this person at all
-					$speak = "Tohohle člověka vůbec nemám rád.";
+                    $speak = "I am not pleased with this person's last statements.";
                     $key_colour = 1;
                 }
                 when (1) {
                     my $tag = set_tag_cat($name->tag, 'case', '2');
                     my $form = ucfirst $generator->get_form($name->lemma, $tag);
-                    #CZ We value [person] the most when he is not talking
-					$speak = $form . " si vážíme nejvíce když mlčí.";
+                    $speak = $form . " is mostly valuable when silent.";
                     $key_colour = 1;
                 }
                 when (2) {
                     my $tag = set_tag_cat($name->tag, 'case', '1');
                     my $form = ucfirst $generator->get_form($name->lemma, $tag);
-					#CZ [person] is the right person in the right spot
-                    $speak = $form . " je člověk na svém místě.";
+                    $speak = $form . " is excellent for their position and a person I personally admire.";
                     $key_colour = 2;
                 }
-                when (3) {                                                                                                                                                                                                                                                                                              
+                when (3) {
                     my $tag = set_tag_cat($name->tag, 'case', '1');
                     my $form = ucfirst $generator->get_form($name->lemma, $tag);
-					#CZ [person] has my full support
-                    $speak = $form . " má mou plnou podporu.";
+                    $speak = $form . " has my full support.";
                     $key_colour = 2;
                 }
                 when (4) {
                     my $tag = set_tag_cat($name->tag, 'case', '1');
                     my $form = ucfirst $generator->get_form($name->lemma, $tag);
-					#CZ [person] needs professional help
-                    $speak = $form . " potřebuje odbornou pomoc.";
+                    $speak = $form . " could use some professional help.";
                     $key_colour = 1;
                 }
                 when (5) {
                     my $tag = set_tag_cat($name->tag, 'case', '1');
                     my $form = ucfirst $generator->get_form($name->lemma, $tag);
-					#CZ [person] is my big (cant think of the word - when you look up to someone)
-                    $speak = $form . " je můj velký vzor.";
+                    $speak = $form . " serves as a personal inspiration to me and I can only aspire to follow in their footsteps.";
                     $key_colour = 2;
                 }
                 when (6) {
+                    $speak = "Mhm, I'd rather not say...";
+                    $key_colour = 2;
+                }
+                when (7) {
                     my $tag = set_tag_cat($name->tag, 'case', '1');
                     my $form = ucfirst $generator->get_form($name->lemma, $tag);
-					#CZ [person] is very inspiring for me
-                    $speak = $form . " je pro mě velkou inspirací.";
+                    $speak = $form . " is a great inspiration to me. Their contribution to the world is remarkable.";
                     $key_colour = 2;
                 }
             }
@@ -882,57 +940,49 @@ sub place {
             $used = int(rand(8));
             given ($used) {
                 when (0) {
-					#CZ I have never been there
-                    $speak = "Tam jsem nikdy nebyl.";
+                    $speak = "I have never been there.";
                     $key_colour = 3;
                 }
                 when (1) {
                     my $tag = set_tag_cat($place->tag, 'case', '1');
                     my $form = ucfirst $generator->get_form($place->lemma, $tag);
-					#CZ [place] is a really nice place. I like to go there to relax
-                    $speak = $form . " je moc hezké místo. Rád si tam jezdím odpočinout.";
+                    $speak = $form . " this is a lovely place, that I have not had the pleasure to visit yet.";
                     $key_colour = 2;
                 }
                 when (2) {
                     my $tag = set_tag_cat($place->tag, 'case', '6');
                     my $form = ucfirst $generator->get_form($place->lemma, $tag);
-					#CZ [place] is wonderful in spring. I like it a lot there.
-                    $speak = "V " . $form . " bývá zjara krásně. Moc se mi tam líbí.";
+                    $speak = "V " . $form . " is wonderful in spring. I find their Easter celebrations charming.";
                     $key_colour = 2;
                 }
                 when (3) {
                     my $tag = set_tag_cat($place->tag, 'case', '1');
                     my $form = ucfirst $generator->get_form($place->lemma, $tag);
-					#CZ Oooh, [place], I drew through once several years ago
-                    $speak = "Jó, " . $form . ", tamtudy už jsem jednou před lety projížděl.";
+                    $speak = "Ah, " . $form . ", I have not visited for a long time, but I remember having a great vacation time.";
                     $key_colour = 4;
                 }
                 when (4) {
                     my $tag = set_tag_cat($place->tag, 'case', '1');
                     my $form = ucfirst $generator->get_form($place->lemma, $tag);
-					#CZ You can hardly find a more boring place than [place]
-                    $speak = "Podle mě těžko najdete větší díru než " . $form . ".";
+                    $speak = "I am not aware of what " . $form . " has to offer to the global culture.";
                     $key_colour = 1;
                 }
                 when (5) {
                     my $tag = set_tag_cat($place->tag, 'case', '6');
                     my $form = ucfirst $generator->get_form($place->lemma, $tag);
-					#CZ I have a public discussion in [place] next week
-                    $speak = "V " . $form . " příští týden pořádám besedu.";
+                    $speak = "I have a conference to attend in " . $form . " next week, and I am looking forward to visiting.";
                     $key_colour = 3;
                 }
                 when (6) {
                     my $tag = set_tag_cat($place->tag, 'case', '2');
                     my $form = ucfirst $generator->get_form($place->lemma, $tag);
-					#CZ I plan to go to [place] for a work-trip to be able to better judge their competency
-                    $speak = "Do " . $form . " se chystám na služební cestu, abych tamní situaci dokázal kompetentně posoudit.";
+                    $speak = "I am planning to visit " . $form . " in order to better assess the situation and listen to the people's input.";
                     $key_colour = 4;
                 }
                 when (7) {
                     my $tag = set_tag_cat($place->tag, 'case', '1');
                     my $form = ucfirst $generator->get_form($place->lemma, $tag);
-					#CZ [place] has its own issued that we cannot understand here
-                    $speak = $form . " má své vlastní problémy, které my zde nedokážeme posoudit.";
+                    $speak = "I would not like to interfere with the situation in " . $form . " as we do not have a good understanding of the situation.";
                     $key_colour = 4;
                 }
             }
@@ -948,22 +998,22 @@ sub place {
     return $speak;
 }
 
-sub intro { #CZ This will probably be the toughest. It should deal with 'how are you' and stuff, with 42, with asking for name, ... enjoy :))
+sub uvod {
     my ($anodes) = @_;
     my $speak;
 
-    if ("jak-3" ~~ @words && "se_^(zvr._zájmeno/částice)" ~~ @words) {
+    if ("what" ~~ @words && "se_^(zvr._zájmeno/částice)" ~~ @words) {
 
-        if ("mít" ~~ @words) {
-            $speak = "Mám se výtečně, děkuji za optání.";
-            return $speak;
-        } 
-        if ("dařit_:T" ~~ @words) {
-            $speak = "Daří se mi skvěle, díky!";
+        if ("have" ~~ @words) {
+            $speak = "I'm doing well, thank you for asking.";
             return $speak;
         }
-        if ("jmenovat_:T_:W" ~~ @words) {
-            $speak = "Mé jméno je Humphrey Novotný.";
+        if ("how" ~~ @words && "are" ~~ @words && "you" ~~ @words) {
+            $speak = "I am doing great, thank you.";
+            return $speak;
+        }
+        if ("what" ~~ @words && "your" ~~ @words && "name" ~~ @words) {
+            $speak = "My name is Humphrey Smith.";
             return $speak;
         }
     }
@@ -971,59 +1021,71 @@ sub intro { #CZ This will probably be the toughest. It should deal with 'how are
         $speak = "Jednadvacet už mi bylo a dál je to moje věc.";
         return $speak;
     }
-    if ("jaký" ~~ @words && "věk" ~~ @words && "tvůj_^(přivlast.)" ~~ @words) {
-        $speak = "Jednadvacet už mi bylo a dál je to moje věc.";
+    if ("what" ~~ @words && "věk" ~~ @words && "your_^(přivlast.)" ~~ @words) {
+        $speak = "Jednadvacet už mi bylo a dál je to moje věc."; # say what? I don't get this
         return $speak;
     }
-    if ("život" ~~ @words && "vesmír" ~~ @words) {
+    if ("meaning" ~~ @words && "life" ~~ @words) {
         $speak = "42.";
         return $speak;
     }
 
+    # prekonanej koncept
+    # my $result = amatch("slon", "slovo"); # je to 1 kdyz to vyjde
+
     return $speak;
 }
 
+sub volby {
+    my ($anodes) = @_;
 
-# guiding mechanism
+
+}
+
+# ridici mechanismus
 my $logname = strftime("%Y-%m-%d_%H-%M-%S.log", localtime(time));
 open $logfile, '>:utf8', $logname;
-	
+
 #print $client "Session initialized.\n";
 &run_dialogue();
 
 sub reply_hierarchy {
     my @ar = @_;
     my $speak = "";
-    
+
     do {
-    $speak = intro(@ar);
+    $speak = uvod(@ar);
     $keyword = "";
     if (!defined $speak || length($speak) <= 0) {
-		$speak = name(@ar);
-		if (!defined $speak || length($speak) <= 0) {
-			$speak = place(@ar);
-			if (!defined $speak || length($speak) <= 0) {
-				$speak = opinion(@ar);
-				$keyword = "";
-				if (!defined $speak || length($speak) <= 0) {
-					$speak = keyword(@ar);
-					if (!defined $speak || length($speak) <= 0) {
-						$speak = general_noun(@ar);
-						$keyword = "";
-						if (!defined $speak || length($speak) <= 0) {
-							#$speak = jaky(@ar);
-							#if (!defined $speak || length($speak) <= 0) {
-								$speak = nothing_to_say();
-								$keyword = "";
-							#}
-						}
-					}
-				}
+        $speak = proste_to(@ar);
+        $keyword = "";
+        if (!defined $speak || length($speak) <= 0) {
+            $speak = name(@ar);
+            if (!defined $speak || length($speak) <= 0) {
+                $speak = place(@ar);
+                if (!defined $speak || length($speak) <= 0) {
+                    $speak = nazor(@ar);
+                    $keyword = "";
+                    if (!defined $speak || length($speak) <= 0) {
+                        $speak = pojem(@ar);
+                        if (!defined $speak || length($speak) <= 0) {
+                            $speak = general_noun(@ar);
+                            $keyword = "";
+                            if (!defined $speak || length($speak) <= 0) {
+                                #$speak = jaky(@ar);
+                                #if (!defined $speak || length($speak) <= 0) {
+                                    $speak = nothing_to_say();
+                                    $keyword = "";
+                                #}
+                            }
+                        }
+                    }
+                }
             }
-        } 
-	
+        } # tady je to ve chvili, kdy neprosel uvod
+
         my $prob = int(rand(100));
-        if ($prob <= $prob_praise) {
+        if ($prob <= $pst_pochvala) {
             $speak = praise() . " " . $speak;
         }
     }
@@ -1035,13 +1097,13 @@ sub reply_hierarchy {
     #say $keyword;
     #say $keys{$keyword};
     if (!defined $keys{$keyword} && length($keyword)>1) {
-        say "ukladam " . $keyword;
+        say "save " . $keyword;
         $keys{$keyword} = $key_colour;
     }
     $speak = typo($speak);
 
     #foreach $a (@pojem_use){
-    #print $a;      
+    #print $a;
     #}
     #say;
 
@@ -1059,13 +1121,13 @@ sub respond {
 
 	    # analyze line
 	    chomp $line;
-		# repeats identical question
+        # repeats identical question
         if ( exists $told_me{$line} ) {
             speak (angry() . " " . repeat_yourself());
             return;
         }
         u_said($line);
-        
+
 	    my $document = create_document_from_sentence($line);
 	    $scenario->apply_to_documents($document);
 	    my @anodes = ($document->get_bundles())[0]->get_tree('cs','a')->get_descendants({ordered => 1});
@@ -1077,19 +1139,24 @@ sub respond {
 
         $last_was_q = q_check(@anodes);
 
-	# the sentence is too short -> we ask for a longer one
+	# kdyz je veta moc kratka, rekneme si o delsi
 	    if ( @anodes == 0 ) {
             speak too_short();
             return;
 	    }
+	# kdyz dostanu ukoncujici sekvenci, skoncim
+	    #if ( grep { $_->lemma eq 'konec' } @anodes ) {
+        #    speak end_dialogue();
+        #    last;
+	    #}
 
         if (! $last_was_q) {
             speak no_question();
             return;
         }
-    # main reply mechanism
+    # hlavni odpovidaci mechanismus
         my $speak = reply_hierarchy(\@anodes);
-	# if it produced something, then just say it, if not, ask for another question
+	# je-li korektne zvoleno, co rici, rekni to, jinak popros o dalsi otazku
 	    if ( defined $speak) {
             speak $speak;
             i_said($speak);
@@ -1108,7 +1175,7 @@ sub initialize {
     @too_short_use = init_use(scalar @end_dialogue_use);
     @repeat_yourself_use = init_use(scalar @repeat_yourself_use);
     @angry_use = init_use(scalar @angry_use);
-    @colleague_use = init_use(scalar @colleague_use);
+    @kolega_use = init_use(scalar @kolega_use);
     @noun_blank_use = init_use(scalar @noun_blank_use);
     @praise_use = init_use(scalar @praise_use);
     @no_question_use = init_use(scalar @no_question_use);
@@ -1123,3 +1190,5 @@ sub initialize {
 
 $scenario->end();
 close $logfile;
+
+# politika - urcite podstatne slovo, ale neni pojem, takze jak ho zpracujem?
