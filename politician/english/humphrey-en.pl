@@ -656,41 +656,47 @@ sub nazor {
     else {return $speak;}
 }
 
-my @proste_verbs = ("arrange", "do", "make", "invent", "concoct",
-                     "devise", "conceive", "fabricate");
-
-sub proste_to {
+my @did_use = init_use(2);
+sub did {
     my ($anodes) = @_;
     my $speak = undef;
     my $node = undef;
 
-    foreach my $verb (@proste_verbs) {
-        if ($verb ~~ @verbs) {
-            $node = $verb;
-
-            foreach my $anode (@$anodes) {
-                if ($anode->lemma eq $node) {
-                    $node = $anode;
-                    last;
-                }
-            }
+    foreach my $verb (@verbs) {
+        if ($verb->lemma eq "do") { # make sure the lemma indeed is "do"
+            $node = "ok";
             last;
        }
     }
 
-    if (defined $node){
-        my $tag = 'VB-P---1P-AA---';
-        my $used_verb = lcfirst $generator->get_form($node->lemma, $tag);
+    my $cyc_const = 0;
 
-        $speak = "Just " . $used_verb . ".";
-
-        if (exists $told_ya{$speak}) {return undef;}
-        else {return $speak;}
+    if (defined $node) {
+        my $used = -1;
+        do {
+            $used = int(rand(2));
+            given ($used) {
+                when (0) {
+                    $speak = "That is a matter of times long gone.";
+                }
+                when (1) {
+                    $speak = "There is no reason to bring up this topic now, after such time.";
+                }
+            }
+            $cyc_const++;
+        } while ( @did_use[$used]==1 && $cyc_const < $cyc_lim);
+        @did_use[$used] = 1;
     }
-    return undef;
+
+    if ($cyc_const >= $cyc_lim) {
+        return undef;
+    } else {
+        if (defined $node) {$keyword = $node->lemma;}
+        return $speak;
+    }
 }
 
-my @pojem_use = init_use(11);
+my @pojem_use = init_use(21);
 sub pojem {
     my ($anodes) = @_;
     my $speak;
@@ -718,7 +724,7 @@ sub pojem {
         my $gender = get_tag_cat($node->tag, 'gender');
         my $used = -1;
         do {
-            $used = int(rand(11));
+            $used = int(rand(21));
             given ($used) {
                 when(0) {
                     my $tag1 = set_tag_cat($node->tag, 'case', '1');
@@ -1204,7 +1210,7 @@ sub reply_hierarchy {
     $speak = uvod(@ar);
     $keyword = "";
     if (!defined $speak || length($speak) <= 0) {
-        $speak = proste_to(@ar);
+        $speak = did(@ar);
         $keyword = "";
         if (!defined $speak || length($speak) <= 0) {
             $speak = name(@ar);
