@@ -1163,36 +1163,22 @@ sub uvod {
     my ($anodes) = @_;
     my $speak;
 
-    if ("how" ~~ @words && "se_^(zvr._zájmeno/částice)" ~~ @words) {
-
-        #if ("have" ~~ @words) {
-            #$speak = "I'm doing well, thank you for asking.";
-            #return $speak;
-        #}
-        if ("how" ~~ @words && "are" ~~ @words && "you" ~~ @words) { # LENGTH OF STR <4
-            $speak = "I am doing great, thank you.";
-            return $speak;
-        }
-        if ("what" ~~ @words && "your" ~~ @words && "name" ~~ @words) { # DOESN'T BELONG HERE
-            $speak = "My name is Humphrey Smith.";
-            return $speak;
-        }
-    }
-    if ("kolik" ~~ @words && "rok" ~~ @words && "ty" ~~ @words) {
-        $speak = "Jednadvacet už mi bylo a dál je to moje věc.";
+    if ("how" ~~ @words && "are" ~~ @words && "you" ~~ @words) { # LENGTH OF STR <4
+        $speak = "I am doing great, thank you.";
         return $speak;
     }
-    if ("what" ~~ @words && "věk" ~~ @words && "your_^(přivlast.)" ~~ @words) {
-        $speak = "Jednadvacet už mi bylo a dál je to moje věc."; # say what? I don't get this
+    if ("what" ~~ @words && "your" ~~ @words && "name" ~~ @words) { # DOESN'T BELONG HERE
+        $speak = "My name is Humphrey Smith.";
+        return $speak;
+    }
+    if ("how" ~~ @words && "old" ~~ @words && "you" ~~ @words) {
+        $speak = "Quite old.";
         return $speak;
     }
     if ("meaning" ~~ @words && "life" ~~ @words) {
         $speak = "42.";
         return $speak;
     }
-
-    # prekonanej koncept
-    # my $result = amatch("slon", "slovo"); # je to 1 kdyz to vyjde
 
     return $speak;
 }
