@@ -111,7 +111,9 @@ my @greeting_use = init_use(scalar @greeting);
 my @nothing_to_say = (
 	"Next question, please.",
 	"No comment.",
-	"I will not address this subject.");
+	"I will not address this subject.",
+	"I will refrain from commenting on this subject",
+	"I wish I could enlighten you on this subject, but I can't.");
 my @nothing_to_say_use = init_use(scalar @nothing_to_say);
 
 my @next_question_prompt = (
@@ -148,16 +150,18 @@ my @repeat_yourself = (
 my @repeat_yourself_use = init_use(scalar @repeat_yourself);
 
 my @angry = (
-    "I am very sorry but I will not entertain thin.",
+    "I am very sorry but I will not entertain this.",
     "We cannot continue talking on this subject.",
     "Are you delibarately trying to embarrass me?",
     "My position is clear, I do not stand for this. Let's change the subject.",
-    "Let's keep this a professional setting and move to another subject."
+    "Let's keep this a civilized setting and move to another subject.",
+    "Are you working for our opponents?",
+    "This rhetoric will not be tolerated."
     );
 my @angry_use = init_use(scalar @angry);
 
 my @kolega = (
-    "Smith", "Brown", "Watson", "Johnson", "Nelson", "Flannery"
+    "Smith", "Brown", "Watson", "Johnson", "Nelson", "Flannery", "Peters", "Jones", "Montalbani", "Sayeed", "Dehdari"
     );
 my @kolega_use = init_use(scalar @kolega);
 
@@ -179,7 +183,8 @@ my @praise = (
     "I am very glad you brought this subject up.",
     "I too have found this topic very interesting.",
     "First of all, allow me to say that I share the same passion for this issue.",
-    "Thank you for bringing this important issue to light."
+    "Thank you for bringing this important issue to light.",
+    "Very good point."
     );
 my @praise_use = init_use(scalar @praise);
 
@@ -491,7 +496,7 @@ sub find_last_full_verb {
     my $node;
     foreach my $anode (@$anodes) {
         # speak ($anode->form . " " . $anode->lemma . " " . $anode->tag );
-        if ( $anode->tag =~ /^V/ && $anode->lemma !~ /be|have/) {
+        if ( $anode->tag =~ /^V/ && $anode->lemma !~ /be|have|do/) {
             $node = $anode;
         }
     }
@@ -558,7 +563,7 @@ sub typo {
 my $last_was_q;
 
 ### momentalne se nepouziva, nema to totiz moc velke vyuziti
-sub jaky {
+sub what {
     my ($anodes) = @_;
 
     my $speak;
@@ -567,10 +572,10 @@ sub jaky {
         my $gender = get_tag_cat($noun->tag, 'gender');
         my $number = get_tag_cat($noun->tag, 'number');
 
-        my $jakytag = 'P4YS4----------';
-        $jakytag = set_tag_cat($jakytag, 'gender', $gender);
-        $jakytag = set_tag_cat($jakytag, 'number', $number);
-        my $jaky = ucfirst $generator->get_form('what', $jakytag);
+        my $whattag = 'P4YS4----------';
+        $whattag = set_tag_cat($whattag, 'gender', $gender);
+        $whattag = set_tag_cat($whattag, 'number', $number);
+        my $what = ucfirst $generator->get_form('what', $whattag);
 
         my $byltag = 'VpYS---XR-AA---';
         $byltag = set_tag_cat($byltag, 'gender', $gender);
@@ -580,8 +585,8 @@ sub jaky {
         my $tag1 = set_tag_cat($noun->tag, 'case', '4');
         my $form = $generator->get_form($noun->lemma, $tag1);
 
-        if ( $jaky && $byl && $form) {
-            $speak = "$jaky $form do you mean?";
+        if ( $what && $byl && $form) {
+            $speak = "$what $form do you mean?";
             #$answer_to = $noun->lemma;
         }
     }
@@ -767,7 +772,7 @@ sub pojem {
                     $plod_tag = set_tag_cat($plod_tag, 'number', $number);
                     my $plod = lcfirst $generator->get_form('plod', $plod_tag);
 
-                    $speak = $form . " " . $byt . " " . $plod . " is the result of our many years of joined effort.";
+                    $speak = $form . " " . $byt . " " . $plod . " is the result of our many years of joined effort, and we aim for a quick resolution.";
                     $key_colour = 4;
                 }
                 when(6) {
@@ -815,6 +820,77 @@ sub pojem {
                     . " to be not as pressing as those " . $nepodstatne . ".";
                     $key_colour = 3;
                 }
+                when (11) {
+                    my $tag = set_tag_cat($node->tag, 'case', '4');
+                    my $form = lcfirst $generator->get_form($node->lemma, $tag);
+                    $speak = $form
+                    . " has been one of of the main focus points in the party's agenda, and we are working tirelessly to solve it.";
+                    $key_colour = 4;
+                }
+                when (12) {
+                    my $tag = set_tag_cat($node->tag, 'case', '1');
+                    my $form = lcfirst $generator->get_form($node->lemma, $tag);
+                    $speak = "Our opponents have openly supported " . $form
+                    . " but we want to remind the public that we have actually taken action.";
+                    $key_colour = 1;
+                }
+                when (13) {
+                    my $tag = set_tag_cat($node->tag, 'case', '3');
+                    my $form = lcfirst $generator->get_form($node->lemma, $tag);
+                    $speak = "Seeing as there are current events that are calling for immediate action, I consider " . $form
+                    . " to be not as pressing as those.";
+                    $key_colour = 3;
+                }
+                when (14) {
+                    my $tag = set_tag_cat($node->tag, 'case', '4');
+                    my $form = lcfirst $generator->get_form($node->lemma, $tag);
+                    $speak = "Since my first campaign, I have made " . $form
+                    . " one of my personal problems to tackle, and I can assure you I am still involved.";
+                    $key_colour = 4;
+                }
+                when (15) {
+                    my $tag = set_tag_cat($node->tag, 'case', '4');
+                    my $form = lcfirst $generator->get_form($node->lemma, $tag);
+                    $speak = "I am profloundly unhappy with the way " . $form
+                    . " is dealt with. I hope in the future we will be able to have a better plan.";
+                    $key_colour = 4;
+                }
+                when (16) {
+                    my $tag = set_tag_cat($node->tag, 'case', '4');
+                    my $form = lcfirst $generator->get_form($node->lemma, $tag);
+                    $speak = "I have not addressed the issue of " . $form
+                    . " for good reason; our priorities for the moment lie elsewhere.";
+                    $key_colour = 4;
+                }
+                when (17) {
+                    my $tag = set_tag_cat($node->tag, 'case', '4');
+                    my $form = lcfirst $generator->get_form($node->lemma, $tag);
+                    $speak = "My background is not ideal for me to speak about " . $form
+                    . " but my colleague " . kolega() . " is ideal for that conversation." ;
+                    $key_colour = 4;
+                }
+                when (18) {
+                    my $tag = set_tag_cat($node->tag, 'case', '4');
+                    my $form = lcfirst $generator->get_form($node->lemma, $tag);
+                    $speak = "It's not appropriate to be talking about " . $form
+                    . " when our nation is being challenged with graver issues." ;
+                    $key_colour = 4;
+                }
+                when (19) {
+                    my $tag = set_tag_cat($node->tag, 'case', '4');
+                    my $form = lcfirst $generator->get_form($node->lemma, $tag);
+                    $speak = "It would not be wise of me to talk about " . $form
+                    . " without addressing more poressing issues first" ;
+                    $key_colour = 4;
+                }
+                when (20) {
+                    my $tag = set_tag_cat($node->tag, 'case', '4');
+                    my $form = lcfirst $generator->get_form($node->lemma, $tag);
+                    $speak = "One of our party's goals for the next year is to fight " . $form
+                    . " in any way possible." ;
+                    $key_colour = 4;
+                }
+
             }
             $cyc_const++;
         } while ( @pojem_use[$used]==1 && $cyc_const < $cyc_lim);
@@ -898,13 +974,79 @@ sub name {
                     $key_colour = 2;
                 }
                 when (6) {
-                    $speak = "Mhm, I'd rather not say...";
+                    $speak = "Hm, I'd rather not say...";
                     $key_colour = 2;
                 }
                 when (7) {
                     my $tag = set_tag_cat($name->tag, 'case', '1');
                     my $form = ucfirst $generator->get_form($name->lemma, $tag);
                     $speak = $form . " is a great inspiration to me. Their contribution to the world is remarkable.";
+                    $key_colour = 2;
+                }
+                when (8) {
+                    my $tag = set_tag_cat($name->tag, 'case', '1');
+                    my $form = ucfirst $generator->get_form($name->lemma, $tag);
+                    $speak = "I am appaled by " . $form . "'s recent statemens.";
+                    $key_colour = 2;
+                }
+                when (9) {
+                    $speak = "I do not want to associate myself with such a person, not even in this conversation.";
+                    $key_colour = 2;
+                }
+                when (10) {
+                    my $tag = set_tag_cat($name->tag, 'case', '1');
+                    my $form = ucfirst $generator->get_form($name->lemma, $tag);
+                    $speak = "I am astounded by the initiative and the community work " . $form . " does.";
+                    $key_colour = 2;
+                }
+                when (11) {
+                    my $tag = set_tag_cat($name->tag, 'case', '1');
+                    my $form = ucfirst $generator->get_form($name->lemma, $tag);
+                    $speak = "I cannot bring myself to say anything nice about " . $form . ".";
+                    $key_colour = 2;
+                }
+                when (12) {
+                    my $tag = set_tag_cat($name->tag, 'case', '1');
+                    my $form = ucfirst $generator->get_form($name->lemma, $tag);
+                    $speak = "I won't say anything about " . $form . "; the facts speak for themselves.";
+                    $key_colour = 2;
+                }
+                when (13) {
+                    my $tag = set_tag_cat($name->tag, 'case', '1');
+                    my $form = ucfirst $generator->get_form($name->lemma, $tag);
+                    $speak = "I wish " . $form . " would talk less and act more.";
+                    $key_colour = 2;
+                }
+                when (14) {
+                    my $tag = set_tag_cat($name->tag, 'case', '1');
+                    my $form = ucfirst $generator->get_form($name->lemma, $tag);
+                    $speak = "I have a lifelong frinedship with " . $form . " and I am glad for that.";
+                    $key_colour = 2;
+                }
+                when (15) {
+                    my $tag = set_tag_cat($name->tag, 'case', '1');
+                    my $form = ucfirst $generator->get_form($name->lemma, $tag);
+                    $speak = "The work of " . $form . " is truly remarkable.";
+                    $key_colour = 2;
+                }
+                when (16) {
+                    $speak = "I will refrain from commenting.";
+                    $key_colour = 2;
+                }
+                when (17) {
+                    $speak = "I am appalled such a person exists.";
+                    $key_colour = 2;
+                }
+                when (18) {
+                    $speak = "Who is this?";
+                    $key_colour = 2;
+                }
+                when (19) {
+                    $speak = "I have never heard of a person with that name.";
+                    $key_colour = 2;
+                }
+                when (20) {
+                    $speak = "I will not be associated with criminals.";
                     $key_colour = 2;
                 }
             }
@@ -982,9 +1124,28 @@ sub place {
                 when (7) {
                     my $tag = set_tag_cat($place->tag, 'case', '1');
                     my $form = ucfirst $generator->get_form($place->lemma, $tag);
-                    $speak = "I would not like to interfere with the situation in " . $form . " as we do not have a good understanding of the situation.";
+                    $speak = "I would not like to interfere with the situation in " . $form . " as we do not have a good understanding of the events.";
                     $key_colour = 4;
                 }
+                when (8) {
+                    my $tag = set_tag_cat($place->tag, 'case', '1');
+                    my $form = ucfirst $generator->get_form($place->lemma, $tag);
+                    $speak = "I would not like to interfere with the situation in " . $form . " as we do not have a good understanding of the events.";
+                    $key_colour = 4;
+                }
+                when (9) {
+                    my $tag = set_tag_cat($place->tag, 'case', '1');
+                    my $form = ucfirst $generator->get_form($place->lemma, $tag);
+                    $speak = $form . " is a great place to visit, with an interesting culture and centuries-long history.";
+                    $key_colour = 4;
+                }
+                when (10) {
+                    my $tag = set_tag_cat($place->tag, 'case', '1');
+                    my $form = ucfirst $generator->get_form($place->lemma, $tag);
+                    $speak = "I love the people of " . $form . ".";
+                    $key_colour = 4;
+                }
+
             }
         $cyc_const++;
         } while ( @place_use[$used]==1 && $cyc_const < $cyc_lim);
@@ -1002,17 +1163,17 @@ sub uvod {
     my ($anodes) = @_;
     my $speak;
 
-    if ("what" ~~ @words && "se_^(zvr._zájmeno/částice)" ~~ @words) {
+    if ("how" ~~ @words && "se_^(zvr._zájmeno/částice)" ~~ @words) {
 
-        if ("have" ~~ @words) {
-            $speak = "I'm doing well, thank you for asking.";
-            return $speak;
-        }
-        if ("how" ~~ @words && "are" ~~ @words && "you" ~~ @words) {
+        #if ("have" ~~ @words) {
+            #$speak = "I'm doing well, thank you for asking.";
+            #return $speak;
+        #}
+        if ("how" ~~ @words && "are" ~~ @words && "you" ~~ @words) { # LENGTH OF STR <4
             $speak = "I am doing great, thank you.";
             return $speak;
         }
-        if ("what" ~~ @words && "your" ~~ @words && "name" ~~ @words) {
+        if ("what" ~~ @words && "your" ~~ @words && "name" ~~ @words) { # DOESN'T BELONG HERE
             $speak = "My name is Humphrey Smith.";
             return $speak;
         }
@@ -1072,7 +1233,7 @@ sub reply_hierarchy {
                             $speak = general_noun(@ar);
                             $keyword = "";
                             if (!defined $speak || length($speak) <= 0) {
-                                #$speak = jaky(@ar);
+                                #$speak = what(@ar);
                                 #if (!defined $speak || length($speak) <= 0) {
                                     $speak = nothing_to_say();
                                     $keyword = "";
