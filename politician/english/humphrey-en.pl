@@ -13,6 +13,7 @@ use POSIX;
 #use String::Approx qw(amatch);
 use Encode;
 use Treex::Tool::EnglishMorpho::Lemmatizer;
+use Treex::Block::W2A::EN::TagMorphoDiTa;
 
 my $line = "";
 my $logfile;
@@ -113,8 +114,8 @@ my @nothing_to_say = (
 	"Next question, please.",
 	"No comment.",
 	"I will not address this subject.",
-	"I will refrain from commenting on this subject",
-	"I wish I could enlighten you on this subject, but I can't.");
+	"I will refrain from commenting on this subject.",
+	"I wish I could enlighten you on this, but I can't.");
 my @nothing_to_say_use = init_use(scalar @nothing_to_say);
 
 my @next_question_prompt = (
@@ -420,7 +421,7 @@ sub set_tag_cat {
 }
 sub get_tag_cat {
     my ($tag, $cat) = @_;
-
+    
     return Treex::Block::W2A::EN::TagMorphoDiTa::get_tag_cat($tag, $cat);
 }
 
@@ -436,6 +437,16 @@ sub find_nouns {
     @nouns = ();
     foreach my $anode (@anodes) {
 	   if ( $anode->tag =~ /NN/) {
+	        push(@nouns, $anode->lemma);
+    	}
+    }
+}
+
+sub find_names {
+    my @anodes = @_;
+    @nouns = ();
+    foreach my $anode (@anodes) {
+	   if ( $anode->tag =~ /NNP/) {
 	        push(@nouns, $anode->lemma);
     	}
     }
@@ -563,16 +574,16 @@ sub what {
     my $speak;
     my $noun = find_last_noun($anodes);
     if (defined $noun) {
-        my $gender = get_tag_cat($noun->tag, 'gender');
+        #my $gender = get_tag_cat($noun->tag, 'gender');
         my $number = get_tag_cat($noun->tag, 'number');
 
         my $whattag = 'P4YS4----------';
-        $whattag = set_tag_cat($whattag, 'gender', $gender);
+        #$whattag = set_tag_cat($whattag, 'gender', $gender);
         $whattag = set_tag_cat($whattag, 'number', $number);
         my $what = ucfirst $generator->get_form('what', $whattag);
 
         my $byltag = 'VpYS---XR-AA---';
-        $byltag = set_tag_cat($byltag, 'gender', $gender);
+        #$byltag = set_tag_cat($byltag, 'gender', $gender);
         $byltag = set_tag_cat($byltag, 'number', $number);
         my $byl = $generator->get_form('be', $byltag);
 
@@ -616,14 +627,14 @@ sub nazor {
     foreach my $verb (@opinion_verbs) {
 	   if ($verb ~~ @verbs) {
 	       $node = $verb;
-	       $what = "v";
+	       $what = "WP";
             last;
 	   }
     }
     foreach my $noun (@opinion_nouns) {
 	   if ($noun ~~ @nouns) {
 	       $node = $noun;
-	       $what = "n";
+	       $what = "NN";
             last;
 	   }
     }
@@ -631,13 +642,13 @@ sub nazor {
     my $cyc_const = 0;
     if (defined $what){
         do {
-            if ($what eq "n") {
+            if ($what eq "NN") {
                 given (int(rand(2))) {
                     when(0) {$speak = "My " . $node . " is completely in accordance with our party ideals.";}
-                    when(1) {$speak = "In my opinion, this is not a pressing matter";}
+                    when(1) {$speak = "In my opinion, this is not a pressing matter.";}
                 }
             }
-            if ($what eq "v") {
+            if ($what eq "WP") {
                 given (int(rand(2))) {
                     when(0) { $speak = "Unfortunately, the evaluation of this topic is beyond my competence.";}
                     when(1) { $speak = "I think everything adheres to the beliefs of my party.";}
@@ -715,7 +726,7 @@ sub pojem {
 
     if (defined $node) {
         my $number = get_tag_cat($node->tag, 'number');
-        my $gender = get_tag_cat($node->tag, 'gender');
+        #my $gender = get_tag_cat($node->tag, 'gender');
         my $used = -1;
         do {
             $used = int(rand(21));
@@ -728,25 +739,25 @@ sub pojem {
                             ", but I am certain that we will discuss it thoroughly in the next party meeting with my peers.";
                     $key_colour = 1;
                 }
-                when(1) { # WORKS!
+                when(1) { 
                     my $tag = set_tag_cat($node->tag, 'case', '1');
                     my $form = ucfirst $generator->get_form($node->lemma, $tag);
                     $speak = "The issue of ". $form . " is very important, but it would be wiser to look at this topic from a wider perspective.";
                     $key_colour = 2;
                 }
-                when(3) { # Broken
+                when(3) { 
                     my $tag = set_tag_cat($node->tag, 'case', '1');
                     my $form = ucfirst $generator->get_form($node->lemma, $tag);
                     $speak = "I do not think that  " . $form . " is one of the most burning issues.";
                     $key_colour = 3;
                 }
-                when(4) { # broken
+                when(4) {
                     my $tag = set_tag_cat($node->tag, 'case', '1');
                     my $form = ucfirst $generator->get_form($node->lemma, $tag);
                     $speak = $form . " is not one of our priorities in this election period, since we are preoccupied with many more issues that demand our undivided attention.";
                     $key_colour = 3;
                 }
-                when(5) { #broken
+                when(5) { 
                     my $tag = set_tag_cat($node->tag, 'case', '1');
                     my $form = ucfirst $generator->get_form($node->lemma, $tag);
                     $speak = $form . " is the result of our many years of joined effort, and we aim for a quick resolution.";
@@ -758,21 +769,21 @@ sub pojem {
                     my $pronoun_tag = 'P5--3--3-------';
                     my $pronoun;
                     $pronoun_tag = set_tag_cat($pronoun_tag, 'number', $number);
-                    $pronoun_tag = set_tag_cat($pronoun_tag, 'gender', $gender);
+                    #$pronoun_tag = set_tag_cat($pronoun_tag, 'gender', $gender);
                     $pronoun = ucfirst $generator->get_form('on-1', $pronoun_tag);
 
                     $speak = $form . " this has been discussed in yesterday's party meeting and if I do not know "
-                    . "the opinion of the party leadership, " . $pronoun . " cannot express.";
+                    . "the opinion of the party leadership, I cannot express my opinion yet.";
                     $key_colour = 2;
                 }
-                when(7) { #broken
+                when(7) { 
                     my $tag = set_tag_cat($node->tag, 'case', '1');
                     my $form = ucfirst $generator->get_form($node->lemma, $tag);
                     $speak = "The issue of " . $form . " is one of our political party's concerns. " .
                     "My colleague " . colleague() . " is more aware of the topic and I will be happy to transfer your concerns.";
                     $key_colour = 1;
                 }
-                when(8) { #WORKS!
+                when(8) { 
                     my $tag = set_tag_cat($node->tag, 'case', '1');
                     my $form = ucfirst $generator->get_form($node->lemma, $tag);
                     $speak = "We have already agreed to form a special comittee, in order to deal with the issue of " . $form
@@ -792,14 +803,14 @@ sub pojem {
                     . " to be not as pressing as those.";
                     $key_colour = 3;
                 }
-                when (11) { #WORKS
+                when (11) { 
                     my $tag = set_tag_cat($node->tag, 'case', '1');
                     my $form = ucfirst $generator->get_form($node->lemma, $tag);
                     $speak = $form
                     . " has been one of of the main focus points in the party's agenda, and we are working tirelessly to solve it.";
                     $key_colour = 4;
                 }
-                when (12) { #broken
+                when (12) { 
                     my $tag = set_tag_cat($node->tag, 'case', '1');
                     my $form = ucfirst $generator->get_form($node->lemma, $tag);
                     $speak = "Our opponents have openly supported " . $form
@@ -813,28 +824,28 @@ sub pojem {
                     . " to be not as pressing as those.";
                     $key_colour = 3;
                 }
-                when (14) { #BROKEN
+                when (14) { 
                     my $tag = set_tag_cat($node->tag, 'case', '1');
                     my $form = ucfirst $generator->get_form($node->lemma, $tag);
                     $speak = "Since my first campaign, I have made " . $form
                     . " one of my personal problems to tackle, and I can assure you I am still involved.";
                     $key_colour = 4;
                 }
-                when (15) { #broken
+                when (15) { 
                     my $tag = set_tag_cat($node->tag, 'case', '1');
                     my $form = ucfirst $generator->get_form($node->lemma, $tag);
                     $speak = "I am profloundly unhappy with the way " . $form
                     . " is dealt with. I hope in the future we will be able to have a better plan.";
                     $key_colour = 4;
                 }
-                when (16) { #broken
+                when (16) { 
                     my $tag = set_tag_cat($node->tag, 'case', '1');
                     my $form = ucfirst $generator->get_form($node->lemma, $tag);
                     $speak = "I have not addressed the issue of " . $form
                     . " for good reason; our priorities for the moment lie elsewhere.";
                     $key_colour = 4;
                 }
-                when (17) { #broken
+                when (17) { 
                     my $tag = set_tag_cat($node->tag, 'case', '1');
                     my $form = ucfirst $generator->get_form($node->lemma, $tag);
                     $speak = "My background is not ideal for me to speak about " . $form
@@ -855,7 +866,7 @@ sub pojem {
                     . " without addressing more pressing issues first." ;
                     $key_colour = 4;
                 }
-                when (20) { # broken
+                when (20) { 
                     my $tag = set_tag_cat($node->tag, 'case', '1');
                     my $form = ucfirst $generator->get_form($node->lemma, $tag);
                     $speak = "One of our party's goals for the next year is to fight " . $form
@@ -892,14 +903,14 @@ sub general_noun {
     return $speak;
 }
 
-my @name_use = init_use(8);
+my @name_use = init_use(21);
 sub name {
     my ($anodes) = @_;
     my $speak;
     my $name;
     foreach my $anode (@$anodes) {
         my $lema = $anode->lemma;
-        if (substr($lema, -3) eq "_;S") {
+        if (substr($lema, -3) eq "_;NNP") {
             $name = $anode;
             last;
         }
@@ -909,7 +920,7 @@ sub name {
     if (defined $name) {
         my $used = -1;
         do {
-            $used = int(rand(8));
+            $used = int(rand(21));
             given ($used) {
                 when (0) {
                     $speak = "I am not pleased with this person's last statements.";
@@ -1034,7 +1045,7 @@ sub name {
     return $speak;
 }
 
-my @place_use = init_use(8);
+my @place_use = init_use(11);
 sub place {
     my ($anodes) = @_;
     my $speak;
@@ -1042,7 +1053,7 @@ sub place {
 
     foreach my $anode (@$anodes) {
         my $lema = $anode->lemma;
-        if (substr($lema, -3) eq "_;G") {
+        if (substr($lema, -3) eq "_;NNP") {
             $place = $anode;
             last;
         }
@@ -1051,7 +1062,7 @@ sub place {
     if (defined $place) {
         my $used = -1;
         do {
-            $used = int(rand(8));
+            $used = int(rand(11));
             given ($used) {
                 when (0) {
                     $speak = "I have never been there.";
@@ -1208,9 +1219,9 @@ sub reply_hierarchy {
             $speak = praise() . " " . $speak;
         }
     }
-    say "keyword ". $keyword;
+    #say "keyword ". $keyword;
     say $keys{$keyword};
-    say "key_col ". $key_colour;
+    #say "key_col ". $key_colour;
     #say defined $keys{$keyword};
     } while (defined $keys{$keyword} && $keys{$keyword} != $key_colour);
     #say $keyword;
